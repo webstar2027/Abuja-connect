@@ -1,143 +1,29 @@
 const planPrices = {
-  regular: [
-    { duration: '1 month', price: '₦1,000', note: 'Flexible duration' },
-    { duration: '3 months', price: '₦2,700', note: 'Save 10%' },
-    { duration: '6 months', price: '₦5,000', note: 'Save 17%' },
-    { duration: '1 year', price: '₦9,000', note: 'Save 25%' }
-  ],
-  escort: [
-    { duration: '1 month', price: '₦2,000', note: 'Flexible duration' },
-    { duration: '3 months', price: '₦5,400', note: 'Save 10%' },
-    { duration: '6 months', price: '₦10,000', note: 'Save 17%' },
-    { duration: '1 year', price: '₦18,000', note: 'Save 25%' }
-  ]
+  regular: [{duration:'1 month',price:'₦1,000'},{duration:'3 months',price:'₦2,700'},{duration:'6 months',price:'₦5,000'},{duration:'1 year',price:'₦9,000'}],
+  escort: [{duration:'1 month',price:'₦2,000'},{duration:'3 months',price:'₦5,400'},{duration:'6 months',price:'₦10,000'},{duration:'1 year',price:'₦18,000'}]
 };
-
-let selectedType = 'regular';
-const pricesGrid = document.querySelector('#prices');
-const authForm = document.querySelector('#auth-form');
-const modal = document.querySelector('#notice-modal');
-const authMessage = document.querySelector('#auth-message');
-let authMode = 'login';
-
-function showNotice(title, body) {
-  document.querySelector('#notice-title').textContent = title;
-  document.querySelector('#notice-body').textContent = body;
-  if (typeof modal.showModal === 'function') modal.showModal();
-  else window.alert(`${title}\n\n${body}`);
-}
-
-function renderPrices() {
-  if (!pricesGrid) return;
-  pricesGrid.innerHTML = planPrices[selectedType].map((plan, index) => `
-    <article class="price-card ${index === 2 ? 'featured' : ''}">
-      <span class="duration">${plan.duration}</span>
-      <div class="price">${plan.price}</div>
-      <span class="saving">${plan.note === 'Flexible duration' ? '&nbsp;' : plan.note}</span>
-      <span class="plan-detail">${selectedType === 'regular' ? 'Regular account' : 'Escort listing'} subscription</span>
-      <button class="btn btn-blue" type="button" data-plan="${plan.duration}">Choose plan</button>
-    </article>
-  `).join('');
-  pricesGrid.querySelectorAll('[data-plan]').forEach(button => {
-    button.addEventListener('click', () => {
-      showNotice('Subscription preview', `You selected ${selectedType === 'regular' ? 'Regular account' : 'Escort listing'} · ${button.dataset.plan}. Paystack is not connected yet, so no payment has been taken.`);
-    });
-  });
-}
-
-function setAuthMode(mode) {
-  authMode = mode === 'signup' ? 'signup' : 'login';
-  document.querySelectorAll('[data-auth-tab]').forEach(button => {
-    const active = button.dataset.authTab === authMode;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-selected', String(active));
-  });
-  const signupFields = document.querySelector('#signup-fields');
-  signupFields.hidden = authMode !== 'signup';
-  document.querySelector('#display-name').required = authMode === 'signup';
-  document.querySelector('#age-check').required = authMode === 'signup';
-  document.querySelector('#auth-submit').textContent = authMode === 'signup' ? 'Create account' : 'Login';
-  document.querySelector('#auth-password').autocomplete = authMode === 'signup' ? 'new-password' : 'current-password';
-  document.querySelector('#auth-switch').innerHTML = authMode === 'signup'
-    ? 'Already have an account? <button type="button" data-auth-tab="login">Login</button>'
-    : 'Don\\'t have an account? <button type="button" data-auth-tab="signup">Sign Up</button>';
-  document.querySelectorAll('[data-auth-tab]').forEach(button => {
-    button.onclick = () => setAuthMode(button.dataset.authTab);
-  });
-  authMessage.textContent = 'Preview only: accounts are not connected yet.';
-}
-
-document.querySelectorAll('[data-auth]').forEach(button => {
-  button.addEventListener('click', () => {
-    setAuthMode(button.dataset.auth || 'signup');
-    document.querySelector('#auth-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    document.querySelector('#auth-email').focus({ preventScroll: true });
-  });
-});
-document.querySelectorAll('[data-auth-tab]').forEach(button => button.addEventListener('click', () => setAuthMode(button.dataset.authTab)));
-
-document.querySelectorAll('[data-type]').forEach(button => {
-  button.addEventListener('click', () => {
-    selectedType = button.dataset.type;
-    document.querySelectorAll('[data-type]').forEach(item => item.classList.toggle('active', item === button));
-    renderPrices();
-  });
-});
-
-document.querySelector('#toggle-password').addEventListener('click', () => {
-  const input = document.querySelector('#auth-password');
-  const reveal = input.type === 'password';
-  input.type = reveal ? 'text' : 'password';
-  document.querySelector('#toggle-password').setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
-});
-
-authForm.addEventListener('submit', event => {
-  event.preventDefault();
-  if (authMode === 'signup' && !document.querySelector('#age-check').checked) {
-    authMessage.textContent = 'Please confirm that you are 18 or older.';
-    return;
-  }
-  authMessage.textContent = authMode === 'signup'
-    ? 'Preview only: your details were not sent or saved. Supabase registration must be connected before launch.'
-    : 'Preview only: login is not connected yet. No credentials were sent or saved.';
-});
-
-document.querySelector('#menu').addEventListener('click', () => {
-  const nav = document.querySelector('#nav');
-  const isOpen = nav.classList.toggle('open');
-  document.querySelector('#menu').setAttribute('aria-expanded', String(isOpen));
-});
-document.querySelectorAll('#nav a').forEach(link => link.addEventListener('click', () => {
-  document.querySelector('#nav').classList.remove('open');
-  document.querySelector('#menu').setAttribute('aria-expanded', 'false');
-}));
-
-document.querySelectorAll('.demo-action').forEach(button => button.addEventListener('click', () => {
-  showNotice('Sample profile', 'This is an illustrative design preview. Real profile likes, passes, and mutual matching will work after the database and authentication are connected.');
-}));
-document.querySelectorAll('.filter-pills button').forEach(button => button.addEventListener('click', () => {
-  document.querySelectorAll('.filter-pills button').forEach(item => item.classList.toggle('selected', item === button));
-  showNotice('Discovery filter', `${button.textContent} is shown as a visual interaction in this preview. Real filters will use live profile data after Supabase is connected.`);
-}));
-document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
-  document.querySelectorAll('[data-view]').forEach(item => item.classList.toggle('active', item === button));
-  document.querySelector('#dashboard-title').textContent = ({
-    home: 'Discover your next connection', discover: 'Discover people', matches: 'Your mutual matches',
-    messages: 'Your conversations', profile: 'Your profile', settings: 'Account settings'
-  })[button.dataset.view] || 'Abuja Connect';
-  if (window.matchMedia('(max-width: 760px)').matches) {
-    showNotice(button.textContent.trim(), 'This is a layout preview. Real account data and navigation will be connected in the next development step.');
-  }
-}));
-document.querySelectorAll('[data-choice]').forEach(button => button.addEventListener('click', () => {
-  document.querySelectorAll('[data-choice]').forEach(item => item.classList.toggle('selected', item === button));
-  selectedType = button.dataset.choice === 'Escort listing' ? 'escort' : 'regular';
-  document.querySelectorAll('[data-type]').forEach(item => item.classList.toggle('active', item.dataset.type === selectedType));
-  renderPrices();
-}));
-document.querySelector('#sample-send').addEventListener('click', () => showNotice('Chat preview', 'Messages are examples only. Real chat will be limited to mutually matched users with an active subscription.'));
-document.querySelector('#close-modal').addEventListener('click', () => modal.close());
-document.querySelector('#notice-ok').addEventListener('click', () => modal.close());
-document.querySelector('#year').textContent = new Date().getFullYear();
-renderPrices();
-setAuthMode('login');
+let selectedType='regular', authMode='login', currentUser=null, supabase=null;
+const $=s=>document.querySelector(s);
+const modal=$('#notice-modal');
+function notice(title,body){$('#notice-title').textContent=title;$('#notice-body').textContent=body;if(modal?.showModal)modal.showModal();else alert(`${title}\n\n${body}`)}
+function configured(){return window.ABUJA_CONFIG && window.ABUJA_CONFIG.supabaseUrl.startsWith('https://') && !window.ABUJA_CONFIG.supabaseUrl.includes('PASTE_') && window.ABUJA_CONFIG.supabasePublishableKey && !window.ABUJA_CONFIG.supabasePublishableKey.includes('PASTE_') && window.supabase;}
+if(configured()) supabase=window.supabase.createClient(window.ABUJA_CONFIG.supabaseUrl,window.ABUJA_CONFIG.supabasePublishableKey);
+function renderPrices(){const grid=$('#prices');if(!grid)return;grid.innerHTML=planPrices[selectedType].map((p,i)=>`<article class="price-card ${i===2?'featured':''}"><b>${p.duration}</b><div class="price">${p.price}</div><small>${i===0?'Flexible duration':'Subscription plan'}</small><button class="btn btn-blue" data-plan="${p.duration}">Choose plan</button></article>`).join('');grid.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>notice('Subscription selected',`${selectedType==='regular'?'Regular account':'Escort listing'} · ${b.dataset.plan}. Payment activation requires the secure Paystack checkout and server verification to be configured.`));}
+function setAuthMode(mode){authMode=mode==='signup'?'signup':'login';document.querySelectorAll('[data-auth-tab]').forEach(b=>{let active=b.dataset.authTab===authMode;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));b.onclick=()=>setAuthMode(b.dataset.authTab)});$('#signup-fields').hidden=authMode!=='signup';$('#display-name').required=authMode==='signup';$('#age-check').required=authMode==='signup';$('#auth-submit').textContent=authMode==='signup'?'Create account':'Login';$('#auth-password').autocomplete=authMode==='signup'?'new-password':'current-password';$('#auth-switch').innerHTML=authMode==='signup'?'Already have an account? <button type="button" data-auth-tab="login">Login</button>':'Don\'t have an account? <button type="button" data-auth-tab="signup">Sign Up</button>';document.querySelectorAll('[data-auth-tab]').forEach(b=>b.onclick=()=>setAuthMode(b.dataset.authTab));}
+function setMessage(text,isError=false){$('#auth-message').textContent=text;$('#auth-message').style.color=isError?'#b4233d':'#16814a';}
+async function refreshSession(){if(!supabase){setMessage('Setup required: add your Supabase Project URL and publishable key in public/config.js.',true);return;}const {data,error}=await supabase.auth.getSession();if(error){setMessage(error.message,true);return;}currentUser=data.session?.user||null;if(currentUser){setMessage(`Signed in as ${currentUser.email}.`);await loadProfiles();}else setMessage('Supabase connected. Log in or create an account.');}
+$('#auth-form').addEventListener('submit',async e=>{e.preventDefault();if(!supabase){setMessage('Supabase is not configured yet. Add the Project URL and publishable key in public/config.js, then redeploy.',true);return;}if(authMode==='signup'&&!$('#age-check').checked){setMessage('Please confirm you are 18 or older.',true);return;}const email=$('#auth-email').value.trim(),password=$('#auth-password').value;$('#auth-submit').disabled=true;setMessage(authMode==='signup'?'Creating your account…':'Signing in…');try{let result;if(authMode==='signup'){result=await supabase.auth.signUp({email,password,options:{data:{display_name:$('#display-name').value.trim(),account_type:$('#account-type').value,age_confirmed:true}}});if(!result.error&&result.data.user&&!result.data.session){setMessage('Account created. Check your email to confirm your account, then log in.');return;}}else result=await supabase.auth.signInWithPassword({email,password});if(result.error)throw result.error;currentUser=result.data.user;setMessage(authMode==='signup'?'Account created successfully.':'You are signed in.');await loadProfiles();}catch(err){setMessage(err.message||'Could not complete request.',true);}finally{$('#auth-submit').disabled=false;}});
+$('#toggle-password').addEventListener('click',()=>{let input=$('#auth-password'),show=input.type==='password';input.type=show?'text':'password';$('#toggle-password').setAttribute('aria-label',show?'Hide password':'Show password');});
+document.querySelectorAll('[data-auth]').forEach(b=>b.addEventListener('click',()=>{setAuthMode(b.dataset.auth);$('#auth-card').scrollIntoView({behavior:'smooth',block:'center'});}));
+document.querySelectorAll('[data-type]').forEach(b=>b.addEventListener('click',()=>{selectedType=b.dataset.type;document.querySelectorAll('[data-type]').forEach(x=>x.classList.toggle('active',x===b));renderPrices();}));
+document.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-choice]').forEach(x=>x.classList.toggle('selected',x===b));selectedType=b.dataset.choice==='Escort listing'?'escort':'regular';document.querySelectorAll('[data-type]').forEach(x=>x.classList.toggle('active',x.dataset.type===selectedType));renderPrices();}));
+async function loadProfiles(){if(!supabase||!currentUser)return;const container=$('.profile-grid');if(!container)return;const {data,error}=await supabase.from('profiles').select('id,display_name,account_type,city,bio,interests,avatar_url').neq('id',currentUser.id).limit(12);if(error){console.warn(error);return;}if(!data?.length){container.innerHTML='<p class="preview-note">Your account is connected. No other profiles are available yet.</p>';return;}container.innerHTML=data.map((p,i)=>`<article class="profile-card"><div class="profile-photo" style="background-image:${p.avatar_url?`url('${safeUrl(p.avatar_url)}')`:'linear-gradient(140deg,#d9e7fa,#7d9bc7)'}"><span class="sample-tag">${escapeHtml(p.account_type==='escort'?'Escort listing':'Member profile')}</span></div><div class="profile-info"><div class="profile-name">${escapeHtml(p.display_name||'Abuja Connect member')}</div><p>${escapeHtml(p.city||'Nigeria')}</p><p class="bio">${escapeHtml(p.bio||'Open to making new connections.')}</p><div class="interest-tags">${(p.interests||[]).slice(0,3).map(t=>`<span>${escapeHtml(t)}</span>`).join('')}</div><div class="profile-actions"><button class="btn btn-blue" data-like="${p.id}">♥ Like</button><button class="btn btn-outline" data-pass="${p.id}">Pass</button></div></div></article>`).join('');container.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>likeProfile(b.dataset.like,b));container.querySelectorAll('[data-pass]').forEach(b=>b.onclick=()=>{b.closest('.profile-card').remove();});}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
+async function likeProfile(id,button){if(!supabase||!currentUser){notice('Sign in required','Please sign in to express interest in a profile.');return;}button.disabled=true;try{const {error}=await supabase.from('likes').upsert({from_user:currentUser.id,to_user:id},{onConflict:'from_user,to_user'});if(error)throw error;button.textContent='♥ Liked';button.classList.remove('btn-blue');button.classList.add('btn-outline');notice('Interest sent','Your interest was saved. A match is created only if the other person also likes your profile.');}catch(e){notice('Could not like profile',e.message||'Please try again.');button.disabled=false;}}
+// Keep demo controls honest until matching/chat routes are wired to the authenticated database.
+document.querySelectorAll('.demo-action').forEach(b=>b.addEventListener('click',()=>notice('Profile action',supabase?'Profile actions are available on live profiles below.':'Connect Supabase to enable real profile actions.')));
+document.querySelectorAll('.filter-pills button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.filter-pills button').forEach(x=>x.classList.toggle('selected',x===b));notice('Discovery filter',`The ${b.textContent} filter will use live member data once filtering is added.`);}));
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===b));$('#dashboard-title').textContent=({home:'Discover your next connection',discover:'Discover people',matches:'Your mutual matches',messages:'Your conversations',profile:'Your profile',settings:'Account settings'})[b.dataset.view]||'Abuja Connect';if(b.dataset.view==='discover')loadProfiles();else if(['matches','messages','profile','settings'].includes(b.dataset.view))notice(b.textContent.trim(),'This screen still needs its dedicated authenticated data view before launch.');}));
+$('#sample-send')?.addEventListener('click',()=>notice('Messaging setup','Secure two-way messaging and the subscriber-only reply rule must be enabled through the SQL policies and a live chat interface.'));
+$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');refreshSession();

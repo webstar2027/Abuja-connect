@@ -1,24 +1,27 @@
-# Abuja Connect Version 1 — visual redesign
+# Abuja Connect Professional Starter
 
-This ZIP updates the existing Abuja Connect starter UI to follow the supplied reference: an Abuja-inspired hero, centered login/sign-up panel, white dashboard, profile cards, chat preview, account-type chooser, and subscription pricing.
+This bundle upgrades the visual interface and adds a first Supabase authentication/profile-discovery integration plus an idempotent schema for a NEW Abuja Connect Supabase project. It does not touch Abuja Meet.
 
-## Files
-- `public/index.html` — page structure and interface
-- `public/styles.css` — responsive visual design
-- `public/app.js` — UI-only preview interactions
-- `public/assets/` — existing logo and poster asset
-- `server.js` — existing static file server, unchanged
-- `package.json` — existing package manifest, unchanged
+## Before deploying
+1. Open `public/config.js` and replace the two placeholders with your Abuja Connect **Project URL** and **publishable key** only. Never put a `sb_secret_` or `service_role` key in a public file.
+2. In the Supabase dashboard for the separate Abuja Connect project, open SQL Editor and run `supabase/schema.sql`. It creates tables/policies if missing and does not drop tables. Review before running; do not run it in Abuja Meet.
+3. Commit the changed `public/index.html`, `public/styles.css`, `public/app.js`, `public/config.js`, and `supabase/schema.sql` to the existing Abuja Connect GitHub repository. Keep your Render service settings and separate Abuja Meet untouched.
+4. Verify email confirmation settings in Supabase Auth, then test signup and login using a test email.
 
-## Important functionality status
-This is still a front-end design preview. Login and registration do not save or send credentials. Profiles in the dashboard are sample placeholders, and likes, filters, matches, chat and subscriptions are demo interactions only. Paystack and Supabase are not connected by this redesign.
+## Implemented in this starter
+- Professional responsive landing page/dashboard styling.
+- Supabase email/password sign-up and login when `public/config.js` is configured.
+- Profile creation trigger and authenticated profile discovery.
+- Like records and mutual-match creation trigger.
+- Database row-level security for profiles, likes, matches, subscriptions and messages.
+- Message insert policy requires an active subscriber and a mutual match. Therefore an unsubscribed recipient can read incoming messages but cannot reply until subscribed.
 
-Before launch, implement and test Supabase Auth and database access, database row-level security, mutual matching and messaging rules, Paystack server-side payment verification, age confirmation and moderation/report/block features, plus server-side image resizing/compression and the 1 MB upload limit. Never put a Supabase secret/service-role key or Paystack secret key in browser JavaScript.
+## Still required before calling it production-ready
+- The visible chat panel is still a design preview; a full real conversation UI with conversation list, realtime updates, unread counts and safe recipient selection remains to be built.
+- Paystack checkout, server-side signature/transaction verification, and trusted subscription activation endpoint are not included. Do not activate subscriptions manually from browser code.
+- Photo uploads/storage policies, server-side image compression/1 MB enforcement, block/report/admin moderation, robust age verification, password reset, rate limiting, and end-to-end testing are still required.
+- The browser UI is not a replacement for backend enforcement. Never expose Supabase secret/service-role or Paystack secret keys.
 
-## Deploying the updated UI
-1. Download and extract this ZIP.
-2. Replace the matching files in the existing Abuja Connect GitHub repository (`public/index.html`, `public/styles.css`, `public/app.js`). Keep the current `server.js`, `package.json`, Supabase project and database unchanged.
-3. Commit the changes to the existing Abuja Connect repository and wait for Render to redeploy.
-4. Test desktop and mobile layouts. The current background uses the bundled poster SVG; replace it with a properly licensed, optimized Abuja MP4 only when ready to test video playback.
-
-Do not use this ZIP to replace or modify the separate Abuja Meet project.
+## Subscription prices
+Regular: ₦1,000 / 1 month, ₦2,700 / 3 months, ₦5,000 / 6 months, ₦9,000 / 1 year.
+Escort listing: ₦2,000 / 1 month, ₦5,400 / 3 months, ₦10,000 / 6 months, ₦18,000 / 1 year.
