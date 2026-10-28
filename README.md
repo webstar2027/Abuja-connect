@@ -1,17 +1,24 @@
-# Abuja Connect — Version 1 starter
+# Abuja Connect Version 1 — visual redesign
 
-A separate starter project for Abuja Connect. It does not connect to or modify Abuja Meet.
+This ZIP updates the existing Abuja Connect starter UI to follow the supplied reference: an Abuja-inspired hero, centered login/sign-up panel, white dashboard, profile cards, chat preview, account-type chooser, and subscription pricing.
 
-Included: responsive landing page, Abuja Connect logo, account type selector, agreed subscription price preview, registration preview, safety guidance, Express server.
+## Files
+- `public/index.html` — page structure and interface
+- `public/styles.css` — responsive visual design
+- `public/app.js` — UI-only preview interactions
+- `public/assets/` — existing logo and poster asset
+- `server.js` — existing static file server, unchanged
+- `package.json` — existing package manifest, unchanged
 
-## Important
-This is a **front-end starter preview**, not a production dating website. Registration is demo-only. Supabase authentication/database, mutual matching, messaging, secure Paystack verification, real age checks, server-side photo compression and 1 MB limit, reporting/blocking, and admin moderation still need to be implemented and tested. Do not collect real passwords or payments with this preview.
+## Important functionality status
+This is still a front-end design preview. Login and registration do not save or send credentials. Profiles in the dashboard are sample placeholders, and likes, filters, matches, chat and subscriptions are demo interactions only. Paystack and Supabase are not connected by this redesign.
 
-## Run locally
-Install Node.js 18 or newer, extract this ZIP, open a terminal in the folder, run `npm install`, then `npm start`. Visit `http://localhost:3000`.
+Before launch, implement and test Supabase Auth and database access, database row-level security, mutual matching and messaging rules, Paystack server-side payment verification, age confirmation and moderation/report/block features, plus server-side image resizing/compression and the 1 MB upload limit. Never put a Supabase secret/service-role key or Paystack secret key in browser JavaScript.
 
-## Deploy separately
-Create a new GitHub repository called `abuja-connect`, a new Supabase project, and a new Render service. Do not connect this project to Abuja Meet or reuse its database/secrets.
+## Deploying the updated UI
+1. Download and extract this ZIP.
+2. Replace the matching files in the existing Abuja Connect GitHub repository (`public/index.html`, `public/styles.css`, `public/app.js`). Keep the current `server.js`, `package.json`, Supabase project and database unchanged.
+3. Commit the changes to the existing Abuja Connect repository and wait for Render to redeploy.
+4. Test desktop and mobile layouts. The current background uses the bundled poster SVG; replace it with a properly licensed, optimized Abuja MP4 only when ready to test video playback.
 
-## Video background
-The current hero uses a designed city-toned background. Add a properly licensed optimized Abuja traffic MP4 only when ready to implement and test video playback.
+Do not use this ZIP to replace or modify the separate Abuja Meet project.

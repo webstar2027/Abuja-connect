@@ -1,1 +1,127 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0c1e3d"><title>Abuja Connect</title><link rel="stylesheet" href="/styles.css"></head><body><header><a class="brand" href="#home"><img src="/assets/abuja-connect-logo.png" alt="Abuja Connect logo"></a><button id="menu">☰</button><nav id="nav"><a href="#home">Home</a><a href="#how">How it works</a><a href="#plans">Subscriptions</a><a href="#safety">Safety</a><button class="btn" data-auth>Join now</button></nav></header><main><section class="hero" id="home"><div><p class="eyebrow">ABUJA • CONNECTIONS • COMMUNITY</p><h1>Good connections<br><span>start here.</span></h1><p>Meet people, discover shared interests, and let a genuine connection grow.</p><button class="btn" data-auth>Create your account</button><small>For adults aged 18 and over only.</small></div></section><section id="how"><p class="eyebrow">A SIMPLE WAY TO CONNECT</p><h2>Meet. Match. Message.</h2><div class="cards"><article><b>01</b><h3>Create your profile</h3><p>Share a little about yourself and choose the account type that fits you.</p></article><article><b>02</b><h3>Discover people</h3><p>Browse profiles and express interest when someone catches your attention.</p></article><article><b>03</b><h3>Connect mutually</h3><p>When both people show interest, messaging can be unlocked with an active subscription.</p></article></div></section><section id="plans" class="plans"><p class="eyebrow">SIMPLE SUBSCRIPTIONS</p><h2>Choose your plan</h2><div class="switch"><button class="active" data-type="regular">Regular account</button><button data-type="escort">Escort listing</button></div><div class="prices" id="prices"></div><small>Payment processing is not connected in this preview.</small></section><section id="safety"><p class="eyebrow">YOUR SAFETY MATTERS</p><h2>Connect thoughtfully.</h2><p>Beware of scammers. Never send money to someone you have not verified or share passwords, bank details, or verification codes.</p><p>Report suspicious profiles, block people who make you uncomfortable, and meet in public places.</p></section><section class="end"><h2>Your next chapter starts with a hello.</h2><button class="btn light" data-auth>Join Abuja Connect</button></section></main><footer>Abuja Connect · Adults 18+ only · © <span id="year"></span></footer><dialog id="modal"><button id="close" class="close">×</button><p class="eyebrow">ABUJA CONNECT</p><h2>Create your account</h2><p>This is a design preview. Registration is not connected yet.</p><form id="form"><label>Display name<input required placeholder="Your display name"></label><label>Email<input required type="email" placeholder="you@example.com"></label><label>Password<input required type="password" minlength="8" placeholder="At least 8 characters"></label><label><input required type="checkbox"> I confirm I am 18 or older.</label><button class="btn">Continue</button></form><p id="message"></p></dialog><script src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Abuja Connect — discover people, build connections and meet thoughtfully. Adults 18+ only.">
+  <title>Abuja Connect — Real People. Real Connections.</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="Abuja Connect home"><img src="/assets/abuja-connect-logo.png" alt="Abuja Connect"></a>
+    <button id="menu" class="menu-button" aria-label="Open navigation" aria-expanded="false">☰</button>
+    <nav id="nav" class="main-nav" aria-label="Main navigation">
+      <a href="#home">Home</a><a href="#explore">Explore</a><a href="#matches">Matches</a><a href="#about">About</a><a href="#support">Support</a>
+      <button class="btn btn-outline" data-auth="login">Login</button>
+      <button class="btn btn-red" data-auth="signup">Sign Up</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-overlay"></div>
+      <div class="hero-copy">
+        <span class="eyebrow eyebrow-light">ABUJA · REAL PEOPLE · REAL CONNECTIONS</span>
+        <h1>Connect.<br><span>Meet.</span><br>Build Something Real.</h1>
+        <p>Discover people, find shared interests, and make meaningful connections in Abuja and across Nigeria.</p>
+        <div class="hero-actions"><button class="btn btn-blue" data-auth="signup">Create your account</button><a class="btn btn-glass" href="#how">How it works</a></div>
+        <p class="adult-note">For adults aged 18 and over only.</p>
+      </div>
+
+      <div class="auth-card" id="auth-card">
+        <img class="auth-logo" src="/assets/abuja-connect-logo.png" alt="Abuja Connect logo">
+        <div class="tagline">Real People <i></i> Real Connections <i></i> Abuja</div>
+        <p class="auth-intro">Find friends, make connections, and meet amazing people in Abuja.</p>
+        <div class="auth-tabs" role="tablist" aria-label="Account access">
+          <button class="auth-tab active" data-auth-tab="login" role="tab" aria-selected="true">Login</button>
+          <button class="auth-tab" data-auth-tab="signup" role="tab" aria-selected="false">Sign Up</button>
+        </div>
+        <form id="auth-form">
+          <label class="input-wrap"><span aria-hidden="true">✉</span><input id="auth-email" type="email" placeholder="Email address" autocomplete="email" required></label>
+          <label class="input-wrap"><span aria-hidden="true">♙</span><input id="auth-password" type="password" placeholder="Password" minlength="8" autocomplete="current-password" required><button class="password-toggle" type="button" id="toggle-password" aria-label="Show password">◉</button></label>
+          <div id="signup-fields" hidden>
+            <label class="input-wrap"><span aria-hidden="true">☺</span><input id="display-name" type="text" placeholder="Display name" autocomplete="nickname"></label>
+            <label class="input-wrap"><span aria-hidden="true">⌂</span><select id="account-type"><option value="regular">Regular account</option><option value="escort">Escort listing</option></select></label>
+            <label class="age-check"><input id="age-check" type="checkbox"> I confirm I am 18 or older.</label>
+          </div>
+          <button class="btn btn-blue auth-submit" id="auth-submit" type="submit">Login</button>
+        </form>
+        <p class="auth-divider"><span>or</span></p>
+        <div class="social-row"><button type="button" class="social-btn" data-social="Google"><b class="google-mark">G</b> Continue with Google</button><button type="button" class="social-btn" data-social="X"><b>𝕏</b> Continue with X</button></div>
+        <p class="auth-switch" id="auth-switch">Don't have an account? <button type="button" data-auth-tab="signup">Sign Up</button></p>
+        <p id="auth-message" class="form-message" role="status">Preview only: accounts are not connected yet.</p>
+      </div>
+      <div class="location-chip"><span>⌖</span> Abuja, Nigeria</div>
+    </section>
+
+    <section class="product-preview" aria-label="Website interface preview">
+      <aside class="dashboard-sidebar">
+        <a class="mini-brand" href="#home"><img src="/assets/abuja-connect-logo.png" alt="Abuja Connect"></a>
+        <button class="side-link active" data-view="home"><span>⌂</span> Home</button>
+        <button class="side-link" data-view="discover"><span>⌕</span> Discover</button>
+        <button class="side-link" data-view="matches"><span>♡</span> Matches</button>
+        <button class="side-link" data-view="messages"><span>✉</span> Messages <b class="notification">3</b></button>
+        <button class="side-link" data-view="profile"><span>♙</span> Profile</button>
+        <button class="side-link" data-view="settings"><span>⚙</span> Settings</button>
+      </aside>
+      <div class="dashboard-main">
+        <div class="dashboard-top"><div><p class="eyebrow">YOUR COMMUNITY</p><h2 id="dashboard-title">Discover your next connection</h2></div><div class="top-icons"><button aria-label="Search">⌕</button><button aria-label="Notifications">♧</button><div class="avatar avatar-blue">A</div></div></div>
+        <div class="dashboard-toolbar"><span>People you may like</span><div class="filter-pills"><button class="selected">Nearby</button><button>Online</button><button>New</button><button>Popular</button></div></div>
+        <div class="profile-grid">
+          <article class="profile-card">
+            <div class="profile-photo photo-one" role="img" aria-label="Sample profile portrait"><span class="online-dot"></span><span class="sample-tag">Sample profile</span></div>
+            <div class="profile-info"><div class="profile-name">Queen T <span class="verified">✓</span></div><p>Female · Abuja</p><p class="bio">Good vibes, great conversations, real connections.</p><div class="interest-tags"><span>Travel</span><span>Music</span><span>Food</span></div><div class="profile-actions"><button class="btn btn-blue demo-action">♥ Like</button><button class="btn btn-outline demo-action">Pass</button></div></div>
+          </article>
+          <article class="profile-card">
+            <div class="profile-photo photo-two" role="img" aria-label="Sample profile portrait"><span class="online-dot"></span><span class="sample-tag">Sample profile</span></div>
+            <div class="profile-info"><div class="profile-name">Chris, 29</div><p>Male · Abuja</p><p class="bio">Here to meet new people and share good experiences.</p><div class="interest-tags"><span>Fitness</span><span>Movies</span></div><div class="profile-actions"><button class="btn btn-blue demo-action">♥ Like</button><button class="btn btn-outline demo-action">Pass</button></div></div>
+          </article>
+          <article class="profile-card">
+            <div class="profile-photo photo-three" role="img" aria-label="Sample profile portrait"><span class="sample-tag">Sample profile</span></div>
+            <div class="profile-info"><div class="profile-name">Lilian, 24</div><p>Female · Abuja</p><p class="bio">Curious, kind, and always up for a good conversation.</p><div class="interest-tags"><span>Art</span><span>Food</span></div><div class="profile-actions"><button class="btn btn-blue demo-action">♥ Like</button><button class="btn btn-outline demo-action">Pass</button></div></div>
+          </article>
+        </div>
+        <p class="preview-note">Design preview only — sample profiles are illustrative, not real members.</p>
+      </div>
+      <aside class="chat-preview">
+        <div class="chat-head"><div class="avatar avatar-pink">L</div><div><b>Lilian</b><small>Example conversation</small></div><button aria-label="Conversation options">⋯</button></div>
+        <div class="chat-body"><div class="bubble received">Hi there! Nice to meet you.</div><small class="chat-time">7:24 PM</small><div class="bubble sent">Hey! Thanks for saying hello.</div><small class="chat-time right">7:25 PM</small><div class="bubble received">What do you enjoy doing in Abuja?</div></div>
+        <div class="chat-warning">Beware of scammers. Never send money or share verification codes.</div>
+        <div class="chat-input"><span>Type a message…</span><button aria-label="Send sample message" id="sample-send">➤</button></div>
+      </aside>
+      <aside class="account-preview">
+        <button class="back-arrow" aria-label="Back">‹</button><p class="eyebrow">GET STARTED</p><h3>Choose account type</h3><p class="muted">Select the type of account you want to create.</p>
+        <button class="account-choice selected" data-choice="Regular account"><span class="choice-icon">♙</span><span><b>Regular Account</b><small>Connect, chat and meet amazing people.</small></span><span>›</span></button>
+        <button class="account-choice" data-choice="Escort listing"><span class="choice-icon heart">♥</span><span><b>Escort Listing</b><small>Listing account, subject to platform rules.</small></span><span>›</span></button>
+        <button class="btn btn-blue continue-account" data-auth="signup">Continue</button>
+        <p class="muted tiny">Adults 18+ only. Review safety rules before connecting.</p>
+      </aside>
+    </section>
+
+    <section id="how" class="section section-how">
+      <p class="eyebrow">A SIMPLE WAY TO CONNECT</p><h2>Meet. Match. Message.</h2><p class="section-lead">A clear, thoughtful way to discover people and build mutual connections.</p>
+      <div class="steps-grid"><article class="step-card"><span class="step-number">01</span><h3>Create your profile</h3><p>Introduce yourself, add your interests, and choose the account type that fits you.</p></article><article class="step-card"><span class="step-number">02</span><h3>Discover people</h3><p>Explore profiles and express interest when someone catches your attention.</p></article><article class="step-card"><span class="step-number">03</span><h3>Connect mutually</h3><p>A match happens when both people express interest. Messaging requires an active subscription.</p></article></div>
+    </section>
+
+    <section id="explore" class="section explore-callout"><div><p class="eyebrow">MORE THAN A PROFILE</p><h2>Make room for a real connection.</h2><p>Explore shared interests, get to know people at your own pace, and keep safety in mind.</p></div><button class="btn btn-blue" data-auth="signup">Join Abuja Connect</button></section>
+
+    <section id="plans" class="section plans-section">
+      <p class="eyebrow">SIMPLE SUBSCRIPTIONS</p><h2>Choose a plan that fits you</h2><p class="section-lead">Select an account type to compare subscription options.</p>
+      <div class="plan-switch"><button class="active" data-type="regular">Regular account</button><button data-type="escort">Escort listing</button></div>
+      <div class="prices" id="prices"></div>
+      <p class="payment-note">Payments are not connected in this preview. Do not submit payment details here.</p>
+    </section>
+
+    <section id="safety" class="section safety-section"><div class="safety-icon">✓</div><div><p class="eyebrow">YOUR SAFETY MATTERS</p><h2>Connect thoughtfully.</h2><p>Beware of scammers. Never send money to someone you have not verified or share passwords, bank details, or verification codes. Report suspicious profiles, block people who make you uncomfortable, and meet in public places.</p></div></section>
+    <section id="about" class="closing"><p class="eyebrow eyebrow-light">REAL PEOPLE · REAL CONNECTIONS</p><h2>Your next chapter starts with a hello.</h2><p>Discover Abuja Connect and make space for better conversations.</p><button class="btn btn-white" data-auth="signup">Join Abuja Connect</button></section>
+    <section id="support" class="support-strip"><div><b>Need help?</b><p>Stay safe and contact support if something feels wrong.</p></div><a href="#safety">Read safety guidance →</a></section>
+  </main>
+
+  <footer><img src="/assets/abuja-connect-logo.png" alt="" class="footer-logo"><span>Abuja Connect · Adults 18+ only · © <span id="year"></span></span><a href="#safety">Safety first</a></footer>
+
+  <dialog id="notice-modal" class="notice-modal"><button id="close-modal" class="close" aria-label="Close">×</button><p class="eyebrow">ABUJA CONNECT</p><h2 id="notice-title">Preview interaction</h2><p id="notice-body">This interface is a design preview.</p><button class="btn btn-blue" id="notice-ok">Got it</button></dialog>
+  <script src="/app.js"></script>
+</body>
+</html>
