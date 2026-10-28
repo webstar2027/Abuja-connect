@@ -1,3 +1,22 @@
+// Rotate real Abuja landmark photographs every 3 seconds. Device local time controls day/night treatment.
+(function initAbujaSlideshow(){
+  const hero=document.querySelector('.hero');
+  const host=document.getElementById('city-slideshow');
+  if(!hero||!host)return;
+  const landmarks=[
+    {name:'Abuja City Gate',url:'https://commons.wikimedia.org/wiki/Special:FilePath/Abuja%20City%20Gate%2001.jpg?width=2000'},
+    {name:'National Mosque, Abuja',url:'https://commons.wikimedia.org/wiki/Special:FilePath/The%20National%20Mosque%20In%20Abuja%20Nigeria.jpg?width=2000'},
+    {name:'Aso Rock, Abuja',url:'https://commons.wikimedia.org/wiki/Special:FilePath/Aso%20Rock%20Nigeria.jpg?width=2000'},
+    {name:'Abuja city landmark',url:'https://commons.wikimedia.org/wiki/Special:FilePath/Abuja%20City%20Gate.jpeg?width=2000'},
+    {name:'National Mosque, Abuja',url:'https://commons.wikimedia.org/wiki/Special:FilePath/Nigeria%20National%20Mosque%20-%20Abuja.jpg?width=2000'}
+  ];
+  const slides=landmarks.map((place,index)=>{const img=document.createElement('img');img.className='city-slide'+(index===0?' active':'');img.alt='';img.setAttribute('aria-hidden','true');img.loading=index===0?'eager':'lazy';img.src=place.url;img.onerror=()=>{img.style.display='none'};host.appendChild(img);return img;});
+  let current=0;
+  function updateTimeTheme(){const hour=new Date().getHours();const night=hour<6||hour>=18;hero.dataset.time=night?'night':'day';hero.dataset.theme=night?'night':'day';}
+  updateTimeTheme();setInterval(updateTimeTheme,60000);
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){setInterval(()=>{slides[current].classList.remove('active');current=(current+1)%slides.length;slides[current].classList.add('active');},3000);}
+})();
+
 const planPrices = {
   regular: [{duration:'1 month',price:'₦1,000'},{duration:'3 months',price:'₦2,700'},{duration:'6 months',price:'₦5,000'},{duration:'1 year',price:'₦9,000'}],
   escort: [{duration:'1 month',price:'₦2,000'},{duration:'3 months',price:'₦5,400'},{duration:'6 months',price:'₦10,000'},{duration:'1 year',price:'₦18,000'}]
@@ -21,9 +40,4 @@ async function loadProfiles(){if(!supabase||!currentUser)return;const container=
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 async function likeProfile(id,button){if(!supabase||!currentUser){notice('Sign in required','Please sign in to express interest in a profile.');return;}button.disabled=true;try{const {error}=await supabase.from('likes').upsert({from_user:currentUser.id,to_user:id},{onConflict:'from_user,to_user'});if(error)throw error;button.textContent='♥ Liked';button.classList.remove('btn-blue');button.classList.add('btn-outline');notice('Interest sent','Your interest was saved. A match is created only if the other person also likes your profile.');}catch(e){notice('Could not like profile',e.message||'Please try again.');button.disabled=false;}}
-// Keep demo controls honest until matching/chat routes are wired to the authenticated database.
-document.querySelectorAll('.demo-action').forEach(b=>b.addEventListener('click',()=>notice('Profile action',supabase?'Profile actions are available on live profiles below.':'Connect Supabase to enable real profile actions.')));
-document.querySelectorAll('.filter-pills button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.filter-pills button').forEach(x=>x.classList.toggle('selected',x===b));notice('Discovery filter',`The ${b.textContent} filter will use live member data once filtering is added.`);}));
-document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===b));$('#dashboard-title').textContent=({home:'Discover your next connection',discover:'Discover people',matches:'Your mutual matches',messages:'Your conversations',profile:'Your profile',settings:'Account settings'})[b.dataset.view]||'Abuja Connect';if(b.dataset.view==='discover')loadProfiles();else if(['matches','messages','profile','settings'].includes(b.dataset.view))notice(b.textContent.trim(),'This screen still needs its dedicated authenticated data view before launch.');}));
-$('#sample-send')?.addEventListener('click',()=>notice('Messaging setup','Secure two-way messaging and the subscriber-only reply rule must be enabled through the SQL policies and a live chat interface.'));
 $('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');refreshSession();

@@ -20,7 +20,8 @@
   </header>
 
   <main>
-    <section class="hero" id="home">
+    <section class="hero" id="home" data-theme="day">
+      <div class="city-slideshow" id="city-slideshow" aria-hidden="true"></div>
       <div class="hero-overlay"></div>
       <div class="hero-copy">
         <span class="eyebrow eyebrow-light">ABUJA · REAL PEOPLE · REAL CONNECTIONS</span>
@@ -51,53 +52,9 @@
         <p class="auth-divider"><span>or</span></p>
         <div class="social-row"><button type="button" class="social-btn" data-social="Google"><b class="google-mark">G</b> Continue with Google</button><button type="button" class="social-btn" data-social="X"><b>𝕏</b> Continue with X</button></div>
         <p class="auth-switch" id="auth-switch">Don't have an account? <button type="button" data-auth-tab="signup">Sign Up</button></p>
-        <p id="auth-message" class="form-message" role="status">Preview only: accounts are not connected yet.</p>
+        <p id="auth-message" class="form-message" role="status">Enter your details to continue. If setup is incomplete, we will explain what is needed.</p>
       </div>
       <div class="location-chip"><span>⌖</span> Abuja, Nigeria</div>
-    </section>
-
-    <section class="product-preview" aria-label="Website interface preview">
-      <aside class="dashboard-sidebar">
-        <a class="mini-brand" href="#home"><img src="/assets/abuja-connect-logo.png" alt="Abuja Connect"></a>
-        <button class="side-link active" data-view="home"><span>⌂</span> Home</button>
-        <button class="side-link" data-view="discover"><span>⌕</span> Discover</button>
-        <button class="side-link" data-view="matches"><span>♡</span> Matches</button>
-        <button class="side-link" data-view="messages"><span>✉</span> Messages <b class="notification">3</b></button>
-        <button class="side-link" data-view="profile"><span>♙</span> Profile</button>
-        <button class="side-link" data-view="settings"><span>⚙</span> Settings</button>
-      </aside>
-      <div class="dashboard-main">
-        <div class="dashboard-top"><div><p class="eyebrow">YOUR COMMUNITY</p><h2 id="dashboard-title">Discover your next connection</h2></div><div class="top-icons"><button aria-label="Search">⌕</button><button aria-label="Notifications">♧</button><div class="avatar avatar-blue">A</div></div></div>
-        <div class="dashboard-toolbar"><span>People you may like</span><div class="filter-pills"><button class="selected">Nearby</button><button>Online</button><button>New</button><button>Popular</button></div></div>
-        <div class="profile-grid">
-          <article class="profile-card">
-            <div class="profile-photo photo-one" role="img" aria-label="Sample profile portrait"><span class="online-dot"></span><span class="sample-tag">Sample profile</span></div>
-            <div class="profile-info"><div class="profile-name">Queen T <span class="verified">✓</span></div><p>Female · Abuja</p><p class="bio">Good vibes, great conversations, real connections.</p><div class="interest-tags"><span>Travel</span><span>Music</span><span>Food</span></div><div class="profile-actions"><button class="btn btn-blue demo-action">♥ Like</button><button class="btn btn-outline demo-action">Pass</button></div></div>
-          </article>
-          <article class="profile-card">
-            <div class="profile-photo photo-two" role="img" aria-label="Sample profile portrait"><span class="online-dot"></span><span class="sample-tag">Sample profile</span></div>
-            <div class="profile-info"><div class="profile-name">Chris, 29</div><p>Male · Abuja</p><p class="bio">Here to meet new people and share good experiences.</p><div class="interest-tags"><span>Fitness</span><span>Movies</span></div><div class="profile-actions"><button class="btn btn-blue demo-action">♥ Like</button><button class="btn btn-outline demo-action">Pass</button></div></div>
-          </article>
-          <article class="profile-card">
-            <div class="profile-photo photo-three" role="img" aria-label="Sample profile portrait"><span class="sample-tag">Sample profile</span></div>
-            <div class="profile-info"><div class="profile-name">Lilian, 24</div><p>Female · Abuja</p><p class="bio">Curious, kind, and always up for a good conversation.</p><div class="interest-tags"><span>Art</span><span>Food</span></div><div class="profile-actions"><button class="btn btn-blue demo-action">♥ Like</button><button class="btn btn-outline demo-action">Pass</button></div></div>
-          </article>
-        </div>
-        <p class="preview-note">Design preview only — sample profiles are illustrative, not real members.</p>
-      </div>
-      <aside class="chat-preview">
-        <div class="chat-head"><div class="avatar avatar-pink">L</div><div><b>Lilian</b><small>Example conversation</small></div><button aria-label="Conversation options">⋯</button></div>
-        <div class="chat-body"><div class="bubble received">Hi there! Nice to meet you.</div><small class="chat-time">7:24 PM</small><div class="bubble sent">Hey! Thanks for saying hello.</div><small class="chat-time right">7:25 PM</small><div class="bubble received">What do you enjoy doing in Abuja?</div></div>
-        <div class="chat-warning">Beware of scammers. Never send money or share verification codes.</div>
-        <div class="chat-input"><span>Type a message…</span><button aria-label="Send sample message" id="sample-send">➤</button></div>
-      </aside>
-      <aside class="account-preview">
-        <button class="back-arrow" aria-label="Back">‹</button><p class="eyebrow">GET STARTED</p><h3>Choose account type</h3><p class="muted">Select the type of account you want to create.</p>
-        <button class="account-choice selected" data-choice="Regular account"><span class="choice-icon">♙</span><span><b>Regular Account</b><small>Connect, chat and meet amazing people.</small></span><span>›</span></button>
-        <button class="account-choice" data-choice="Escort listing"><span class="choice-icon heart">♥</span><span><b>Escort Listing</b><small>Listing account, subject to platform rules.</small></span><span>›</span></button>
-        <button class="btn btn-blue continue-account" data-auth="signup">Continue</button>
-        <p class="muted tiny">Adults 18+ only. Review safety rules before connecting.</p>
-      </aside>
     </section>
 
     <section id="how" class="section section-how">
