@@ -30,29 +30,6 @@ if(configured()) supabase=window.supabase.createClient(window.ABUJA_CONFIG.supab
 function renderPrices(){const grid=$('#prices');if(!grid)return;grid.innerHTML=planPrices[selectedType].map((p,i)=>`<article class="price-card ${i===2?'featured':''}"><b>${p.duration}</b><div class="price">${p.price}</div><small>${i===0?'Flexible duration':'Subscription plan'}</small><button class="btn btn-blue" data-plan="${p.duration}">Choose plan</button></article>`).join('');grid.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>notice('Subscription selected',`${selectedType==='regular'?'Regular account':'Escort listing'} · ${b.dataset.plan}. Payment activation requires the secure Paystack checkout and server verification to be configured.`));}
 function setAuthMode(mode){authMode=mode==='signup'?'signup':'login';document.querySelectorAll('[data-auth-tab]').forEach(b=>{let active=b.dataset.authTab===authMode;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));b.onclick=()=>setAuthMode(b.dataset.authTab)});$('#signup-fields').hidden=authMode!=='signup';$('#display-name').required=authMode==='signup';$('#age-check').required=authMode==='signup';$('#auth-submit').textContent=authMode==='signup'?'Create account':'Login';$('#auth-password').autocomplete=authMode==='signup'?'new-password':'current-password';$('#auth-switch').innerHTML=authMode==='signup'?'Already have an account? <button type="button" data-auth-tab="login">Login</button>':'Don\'t have an account? <button type="button" data-auth-tab="signup">Sign Up</button>';document.querySelectorAll('[data-auth-tab]').forEach(b=>b.onclick=()=>setAuthMode(b.dataset.authTab));}
 function setMessage(text,isError=false){$('#auth-message').textContent=text;$('#auth-message').style.color=isError?'#b4233d':'#16814a';}
-
-const forgotButton=$('#forgot-password');
-forgotButton?.addEventListener('click',async()=>{
-  const email=$('#auth-email').value.trim();
-  if(!email){setMessage('Enter your email address first, then choose Forgot password.',true);$('#auth-email').focus();return;}
-  if(!supabase){setMessage('Password reset is unavailable until Supabase is configured.',true);return;}
-  forgotButton.disabled=true;
-  try{
-    const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
-    if(error)throw error;
-    setMessage('If an account exists for that email, a password-reset link will be sent.');
-  }catch(err){setMessage(err.message||'Could not request a password reset.',true);}
-  finally{forgotButton.disabled=false;}
-});
-document.querySelectorAll('[data-social="Google"]').forEach(button=>button.addEventListener('click',async()=>{
-  if(!supabase){setMessage('Google sign-in is unavailable until Supabase is configured.',true);return;}
-  button.disabled=true;
-  try{
-    const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});
-    if(error)throw error;
-  }catch(err){setMessage(err.message||'Could not start Google sign-in.',true);button.disabled=false;}
-}));
-
 async function refreshSession(){if(!supabase){setMessage('Setup required: add your Supabase Project URL and publishable key in public/config.js.',true);return;}const {data,error}=await supabase.auth.getSession();if(error){setMessage(error.message,true);return;}currentUser=data.session?.user||null;if(currentUser){setMessage(`Signed in as ${currentUser.email}.`);await loadProfiles();}else setMessage('Supabase connected. Log in or create an account.');}
 $('#auth-form').addEventListener('submit',async e=>{e.preventDefault();if(!supabase){setMessage('Supabase is not configured yet. Add the Project URL and publishable key in public/config.js, then redeploy.',true);return;}if(authMode==='signup'&&!$('#age-check').checked){setMessage('Please confirm you are 18 or older.',true);return;}const email=$('#auth-email').value.trim(),password=$('#auth-password').value;$('#auth-submit').disabled=true;setMessage(authMode==='signup'?'Creating your account…':'Signing in…');try{let result;if(authMode==='signup'){result=await supabase.auth.signUp({email,password,options:{data:{display_name:$('#display-name').value.trim(),account_type:$('#account-type').value,age_confirmed:true}}});if(!result.error&&result.data.user&&!result.data.session){setMessage('Account created. Check your email to confirm your account, then log in.');return;}}else result=await supabase.auth.signInWithPassword({email,password});if(result.error)throw result.error;currentUser=result.data.user;setMessage(authMode==='signup'?'Account created successfully.':'You are signed in.');await loadProfiles();}catch(err){setMessage(err.message||'Could not complete request.',true);}finally{$('#auth-submit').disabled=false;}});
 $('#toggle-password').addEventListener('click',()=>{let input=$('#auth-password'),show=input.type==='password';input.type=show?'text':'password';$('#toggle-password').setAttribute('aria-label',show?'Hide password':'Show password');});

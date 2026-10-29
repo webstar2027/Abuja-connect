@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#061a3c">
+  <meta name="theme-color" content="#ffffff">
   <meta name="description" content="Abuja Connect — discover people, build connections and meet thoughtfully. Adults 18+ only.">
   <title>Abuja Connect — Real People. Real Connections.</title>
   <link rel="stylesheet" href="/styles.css">
@@ -24,29 +24,24 @@
       <div class="city-slideshow" id="city-slideshow" aria-hidden="true"></div>
       <div class="hero-overlay"></div>
       <div class="hero-copy">
-        <img class="hero-brand" src="/assets/abuja-connect-logo.png" alt="Abuja Connect">
-        <h1>Real People.<br><span>Real Connections.</span></h1>
-        <p>Meet amazing people in Abuja and build meaningful relationships.</p>
-        <div class="feature-list">
-          <div class="feature-item"><span class="feature-icon">♧</span><div><strong>Create Your Profile</strong><small>Show who you are and what you're looking for</small></div></div>
-          <div class="feature-item"><span class="feature-icon">♡</span><div><strong>Match &amp; Connect</strong><small>Like, match and start chatting</small></div></div>
-          <div class="feature-item"><span class="feature-icon">♢</span><div><strong>Safe &amp; Secure</strong><small>Verified profiles and real people</small></div></div>
-          <div class="feature-item"><span class="feature-icon">⌖</span><div><strong>Abuja &amp; Beyond</strong><small>Meet people in Abuja and nearby areas</small></div></div>
-        </div>
+        <span class="eyebrow eyebrow-light">ABUJA · REAL PEOPLE · REAL CONNECTIONS</span>
+        <h1>Connect.<br><span>Meet.</span><br>Build Something Real.</h1>
+        <p>Discover people, find shared interests, and make meaningful connections in Abuja and across Nigeria.</p>
+        <div class="hero-actions"><button class="btn btn-blue" data-auth="signup">Create your account</button><a class="btn btn-glass" href="#how">How it works</a></div>
         <p class="adult-note">For adults aged 18 and over only.</p>
       </div>
 
       <div class="auth-card" id="auth-card">
-        <h2 class="auth-heading">Welcome Back</h2>
-        <p class="auth-intro">Log in to your Abuja Connect account</p>
-        <div class="auth-tabs visually-hidden" role="tablist" aria-label="Account access">
+        <img class="auth-logo" src="/assets/abuja-connect-logo.png" alt="Abuja Connect logo">
+        <div class="tagline">Real People <i></i> Real Connections <i></i> Abuja</div>
+        <p class="auth-intro">Find friends, make connections, and meet amazing people in Abuja.</p>
+        <div class="auth-tabs" role="tablist" aria-label="Account access">
           <button class="auth-tab active" data-auth-tab="login" role="tab" aria-selected="true">Login</button>
           <button class="auth-tab" data-auth-tab="signup" role="tab" aria-selected="false">Sign Up</button>
         </div>
         <form id="auth-form">
           <label class="input-wrap"><span aria-hidden="true">✉</span><input id="auth-email" type="email" placeholder="Email address" autocomplete="email" required></label>
           <label class="input-wrap"><span aria-hidden="true">♙</span><input id="auth-password" type="password" placeholder="Password" minlength="8" autocomplete="current-password" required><button class="password-toggle" type="button" id="toggle-password" aria-label="Show password">◉</button></label>
-          <div class="login-options"><label class="remember"><input type="checkbox" id="remember-me" checked> Remember me</label><button type="button" id="forgot-password" class="text-link">Forgot password?</button></div>
           <div id="signup-fields" hidden>
             <label class="input-wrap"><span aria-hidden="true">☺</span><input id="display-name" type="text" placeholder="Display name" autocomplete="nickname"></label>
             <label class="input-wrap"><span aria-hidden="true">⌂</span><select id="account-type"><option value="regular">Regular account</option><option value="escort">Escort listing</option></select></label>
@@ -55,7 +50,7 @@
           <button class="btn btn-blue auth-submit" id="auth-submit" type="submit">Login</button>
         </form>
         <p class="auth-divider"><span>or</span></p>
-        <div class="social-row"><button type="button" class="social-btn" data-social="Google"><b class="google-mark">G</b> Continue with Google</button></div>
+        <div class="social-row"><button type="button" class="social-btn" data-social="Google"><b class="google-mark">G</b> Continue with Google</button><button type="button" class="social-btn" data-social="X"><b>𝕏</b> Continue with X</button></div>
         <p class="auth-switch" id="auth-switch">Don't have an account? <button type="button" data-auth-tab="signup">Sign Up</button></p>
         <p id="auth-message" class="form-message" role="status">Enter your details to continue. If setup is incomplete, we will explain what is needed.</p>
       </div>
