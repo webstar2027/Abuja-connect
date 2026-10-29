@@ -13,9 +13,15 @@
     <a class="brand" href="#home" aria-label="Abuja Connect home"><img src="/assets/abuja-connect-logo.png" alt="Abuja Connect"></a>
     <button id="menu" class="menu-button" aria-label="Open navigation" aria-expanded="false">☰</button>
     <nav id="nav" class="main-nav" aria-label="Main navigation">
-      <a href="#home">Home</a><a href="#explore">Explore</a><a href="#matches">Matches</a><a href="#about">About</a><a href="#support">Support</a>
-      <button class="btn btn-outline" data-auth="login">Login</button>
-      <button class="btn btn-red" data-auth="signup">Sign Up</button>
+      <a class="public-nav" href="#home">Home</a><a class="public-nav" href="#explore">Explore</a><a class="public-nav" href="#about">About</a><a class="public-nav" href="#support">Support</a>
+      <button class="btn btn-outline public-nav" data-auth="login">Login</button>
+      <button class="btn btn-red public-nav" data-auth="signup">Sign Up</button>
+      <button class="dashboard-nav" data-view="dashboard" type="button">Dashboard</button>
+      <button class="dashboard-nav" data-view="discover" type="button">Discover</button>
+      <button class="dashboard-nav" data-view="matches" type="button">Matches</button>
+      <button class="dashboard-nav" data-view="messages" type="button">Messages</button>
+      <button class="dashboard-nav" data-view="profile" type="button">My Profile</button>
+      <button class="btn btn-outline dashboard-nav" id="header-logout" type="button">Log out</button>
     </nav>
   </header>
 
@@ -59,19 +65,35 @@
         <p class="auth-switch" id="auth-switch">Don't have an account? <button type="button" data-auth-tab="signup">Sign Up</button></p>
         <p id="auth-message" class="form-message" role="status">Enter your details to continue. If setup is incomplete, we will explain what is needed.</p>
       </div>
-      <section class="member-dashboard" id="member-dashboard" hidden aria-live="polite">
-        <p class="eyebrow">ABUJA CONNECT MEMBER AREA</p>
-        <h2>Welcome, <span id="member-name">member</span>!</h2>
-        <p id="member-email"></p>
-        <p>Your account is signed in. You can explore Abuja Connect and manage your session here.</p>
-        <div class="member-actions">
-          <button class="btn btn-blue" id="browse-members" type="button">Explore members</button>
-          <button class="btn btn-outline" id="sign-out" type="button">Log out</button>
-        </div>
-        <p id="member-message" class="form-message" role="status"></p>
-        <div class="profile-grid" aria-live="polite"></div>
-      </section>
       <div class="location-chip"><span>⌖</span> Abuja, Nigeria</div>
+    </section>
+
+    <section id="member-dashboard" class="member-dashboard" hidden aria-live="polite">
+      <aside class="dashboard-sidebar">
+        <p class="eyebrow">MEMBER SPACE</p>
+        <h2>Abuja Connect</h2>
+        <p class="sidebar-user"><span id="sidebar-member-name">Member</span><small id="member-email"></small></p>
+        <button class="dashboard-tab active" data-view="dashboard" type="button">⌂ <span>Dashboard</span></button>
+        <button class="dashboard-tab" data-view="discover" type="button">♡ <span>Discover people</span></button>
+        <button class="dashboard-tab" data-view="matches" type="button">✦ <span>My matches</span></button>
+        <button class="dashboard-tab" data-view="messages" type="button">✉ <span>Messages</span></button>
+        <button class="dashboard-tab" data-view="profile" type="button">♙ <span>My profile</span></button>
+        <button class="dashboard-tab dashboard-logout" id="sign-out" type="button">↪ <span>Log out</span></button>
+      </aside>
+      <div class="dashboard-main">
+        <div class="dashboard-topline"><div><p class="eyebrow">YOUR PERSONAL SPACE</p><h1 id="dashboard-title">Dashboard</h1></div><span class="signed-in-pill">● Signed in</span></div>
+        <div class="dashboard-view" data-panel="dashboard">
+          <div class="welcome-panel"><div><p class="eyebrow eyebrow-light">WELCOME BACK</p><h2>Hello, <span id="member-name">member</span>!</h2><p>Ready to make a meaningful connection? Discover members, see your matches, and manage your profile.</p><button class="btn btn-white" data-view="discover" type="button">Discover members →</button></div><div class="welcome-symbol">♡</div></div>
+          <div class="dashboard-stats"><article><span>♡</span><b id="stat-likes">—</b><small>People you've liked</small></article><article><span>✦</span><b id="stat-matches">—</b><small>Your matches</small></article><article><span>✉</span><b id="stat-messages">—</b><small>Messages</small></article></div>
+          <div class="dashboard-section-heading"><div><h2>People to discover</h2><p>Profiles from the Abuja Connect community</p></div><button class="text-link" data-view="discover" type="button">View all</button></div>
+          <div class="profile-grid" id="dashboard-profiles"></div>
+        </div>
+        <div class="dashboard-view" data-panel="discover" hidden><div class="dashboard-section-heading"><div><h2>Discover people</h2><p>Like someone to express interest. A match happens when interest is mutual.</p></div><button class="btn btn-outline" id="refresh-discover" type="button">Refresh</button></div><div class="profile-grid" id="discover-profiles"></div></div>
+        <div class="dashboard-view" data-panel="matches" hidden><div class="dashboard-section-heading"><div><h2>Your matches</h2><p>People who have mutually liked each other.</p></div><button class="btn btn-outline" id="refresh-matches" type="button">Refresh</button></div><div class="match-list" id="matches-list"></div></div>
+        <div class="dashboard-view" data-panel="messages" hidden><div class="dashboard-section-heading"><div><h2>Messages</h2><p>Choose a match to view the conversation.</p></div></div><div class="chat-layout"><div class="conversation-list" id="conversation-list"></div><div class="conversation-panel"><div id="conversation-empty" class="empty-state">Select a match to open a conversation.</div><div id="conversation-content" hidden><div class="conversation-heading" id="conversation-heading"></div><div class="message-list" id="message-list"></div><form id="message-form" class="message-form"><input id="message-input" maxlength="4000" placeholder="Write a message…" required><button class="btn btn-blue" type="submit">Send</button></form></div></div></div><p class="dashboard-note">Sending messages requires an active subscription. Payments are not activated on this site yet.</p></div>
+        <div class="dashboard-view" data-panel="profile" hidden><div class="dashboard-section-heading"><div><h2>My profile</h2><p>Keep your profile up to date so people can get to know you.</p></div></div><form id="profile-form" class="profile-form"><label>Display name<input id="profile-display-name" maxlength="80" required></label><label>City<input id="profile-city" maxlength="100" value="Abuja" required></label><label>About me<textarea id="profile-bio" rows="4" maxlength="1000" placeholder="Share a little about yourself"></textarea></label><label>Interests <span class="field-hint">Separate interests with commas</span><input id="profile-interests" maxlength="300" placeholder="Music, travel, movies"></label><button class="btn btn-blue" type="submit">Save profile</button><p id="profile-message" role="status"></p></form></div>
+        <p id="member-message" class="dashboard-message" role="status"></p>
+      </div>
     </section>
 
     <section id="how" class="section section-how">
