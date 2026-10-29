@@ -56,8 +56,36 @@ document.querySelectorAll('[data-social="Google"]').forEach(button=>button.addEv
   }catch(err){setMessage(err.message||'Could not start Google sign-in.',true);button.disabled=false;}
 }));
 
-async function refreshSession(){if(!supabase){setMessage('Setup required: add your Supabase Project URL and publishable key in public/config.js.',true);return;}const {data,error}=await supabase.auth.getSession();if(error){setMessage(error.message,true);return;}currentUser=data.session?.user||null;if(currentUser){setMessage(`Signed in as ${currentUser.email}.`);await loadProfiles();}else setMessage('Supabase connected. Log in or create an account.');}
-$('#auth-form').addEventListener('submit',async e=>{e.preventDefault();if(!supabase){setMessage('Supabase is not configured yet. Add the Project URL and publishable key in public/config.js, then redeploy.',true);return;}if(authMode==='signup'&&!$('#age-check').checked){setMessage('Please confirm you are 18 or older.',true);return;}const email=$('#auth-email').value.trim(),password=$('#auth-password').value;$('#auth-submit').disabled=true;setMessage(authMode==='signup'?'Creating your account…':'Signing in…');try{let result;if(authMode==='signup'){result=await supabase.auth.signUp({email,password,options:{data:{display_name:$('#display-name').value.trim(),account_type:$('#account-type').value,age_confirmed:true}}});if(!result.error&&result.data.user&&!result.data.session){setMessage('Account created. Check your email to confirm your account, then log in.');return;}}else result=await supabase.auth.signInWithPassword({email,password});if(result.error)throw result.error;currentUser=result.data.user;setMessage(authMode==='signup'?'Account created successfully.':'You are signed in.');await loadProfiles();}catch(err){setMessage(err.message||'Could not complete request.',true);}finally{$('#auth-submit').disabled=false;}});
+function renderAuthState(){
+  const authCard=$('#auth-card');
+  const dashboard=$('#member-dashboard');
+  if(authCard) authCard.hidden=!!currentUser;
+  if(dashboard) dashboard.hidden=!currentUser;
+  if(currentUser){
+    const name=currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || 'member';
+    $('#member-name').textContent=name;
+    $('#member-email').textContent=currentUser.email || '';
+    $('#member-message').textContent='You are signed in successfully.';
+  }
+}
+$('#sign-out')?.addEventListener('click',async()=>{
+  if(!supabase)return;
+  const button=$('#sign-out');button.disabled=true;
+  try{
+    const {error}=await supabase.auth.signOut();
+    if(error)throw error;
+    currentUser=null;renderAuthState();
+    setMessage('You have logged out successfully.');
+  }catch(err){
+    $('#member-message').textContent=err.message||'Could not log out. Please try again.';
+  }finally{button.disabled=false;}
+});
+$('#browse-members')?.addEventListener('click',()=>{
+  $('#member-message').textContent='Member discovery will appear here when other member profiles are available.';
+  $('#member-dashboard').scrollIntoView({behavior:'smooth',block:'center'});
+});
+async function refreshSession(){if(!supabase){setMessage('Setup required: add your Supabase Project URL and publishable key in public/config.js.',true);return;}const {data,error}=await supabase.auth.getSession();if(error){setMessage(error.message,true);return;}currentUser=data.session?.user||null;renderAuthState();if(currentUser){await loadProfiles();}else setMessage('Enter your email and password to log in, or choose Sign Up to create an account.');}
+$('#auth-form').addEventListener('submit',async e=>{e.preventDefault();if(!supabase){setMessage('Supabase is not configured yet. Add the Project URL and publishable key in public/config.js, then redeploy.',true);return;}if(authMode==='signup'&&!$('#age-check').checked){setMessage('Please confirm you are 18 or older.',true);return;}const email=$('#auth-email').value.trim(),password=$('#auth-password').value;$('#auth-submit').disabled=true;setMessage(authMode==='signup'?'Creating your account…':'Signing in…');try{let result;if(authMode==='signup'){result=await supabase.auth.signUp({email,password,options:{data:{display_name:$('#display-name').value.trim(),account_type:$('#account-type').value,age_confirmed:true}}});if(!result.error&&result.data.user&&!result.data.session){setMessage('Account created. Check your email to confirm your account, then log in.');return;}}else result=await supabase.auth.signInWithPassword({email,password});if(result.error)throw result.error;currentUser=result.data.user;renderAuthState();if(!currentUser)setMessage(authMode==='signup'?'Account created successfully.':'You are signed in.');await loadProfiles();}catch(err){setMessage(err.message||'Could not complete request.',true);}finally{$('#auth-submit').disabled=false;}});
 $('#toggle-password').addEventListener('click',()=>{let input=$('#auth-password'),show=input.type==='password';input.type=show?'text':'password';$('#toggle-password').setAttribute('aria-label',show?'Hide password':'Show password');});
 document.querySelectorAll('[data-auth]').forEach(b=>b.addEventListener('click',()=>{setAuthMode(b.dataset.auth);$('#auth-card').scrollIntoView({behavior:'smooth',block:'center'});}));
 document.querySelectorAll('[data-type]').forEach(b=>b.addEventListener('click',()=>{selectedType=b.dataset.type;document.querySelectorAll('[data-type]').forEach(x=>x.classList.toggle('active',x===b));renderPrices();}));
@@ -66,7 +94,7 @@ async function loadProfiles(){if(!supabase||!currentUser)return;const container=
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 async function likeProfile(id,button){if(!supabase||!currentUser){notice('Sign in required','Please sign in to express interest in a profile.');return;}button.disabled=true;try{const {error}=await supabase.from('likes').upsert({from_user:currentUser.id,to_user:id},{onConflict:'from_user,to_user'});if(error)throw error;button.textContent='♥ Liked';button.classList.remove('btn-blue');button.classList.add('btn-outline');notice('Interest sent','Your interest was saved. A match is created only if the other person also likes your profile.');}catch(e){notice('Could not like profile',e.message||'Please try again.');button.disabled=false;}}
-$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');refreshSession();
+$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;renderAuthState();if(currentUser)loadProfiles();});refreshSession();
 
 
 })();

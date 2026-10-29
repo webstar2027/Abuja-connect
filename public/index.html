@@ -59,6 +59,18 @@
         <p class="auth-switch" id="auth-switch">Don't have an account? <button type="button" data-auth-tab="signup">Sign Up</button></p>
         <p id="auth-message" class="form-message" role="status">Enter your details to continue. If setup is incomplete, we will explain what is needed.</p>
       </div>
+      <section class="member-dashboard" id="member-dashboard" hidden aria-live="polite">
+        <p class="eyebrow">ABUJA CONNECT MEMBER AREA</p>
+        <h2>Welcome, <span id="member-name">member</span>!</h2>
+        <p id="member-email"></p>
+        <p>Your account is signed in. You can explore Abuja Connect and manage your session here.</p>
+        <div class="member-actions">
+          <button class="btn btn-blue" id="browse-members" type="button">Explore members</button>
+          <button class="btn btn-outline" id="sign-out" type="button">Log out</button>
+        </div>
+        <p id="member-message" class="form-message" role="status"></p>
+        <div class="profile-grid" aria-live="polite"></div>
+      </section>
       <div class="location-chip"><span>⌖</span> Abuja, Nigeria</div>
     </section>
 
