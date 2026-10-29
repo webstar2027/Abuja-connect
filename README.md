@@ -1,50 +1,45 @@
-# Abuja Connect — GitHub + Render + Supabase starter
+# Abuja Connect — GitHub + Render + Supabase
 
-This project can run on Render as a Node web service and can also be published as static files through GitHub Pages. Supabase provides authentication and database services.
+This package is based on the newer Abuja Connect website you supplied. It preserves the current landing page, styles, logo, and client-side interactions while adding a small Node.js server that serves the frontend and provides Supabase browser configuration from Render environment variables.
 
-## Easiest recommended setup: GitHub + Render + Supabase
+## Deploy on Render
 
-### 1. Upload the project to GitHub
-Upload/commit the contents of this project folder (including `package.json`, `server.js`, `public/`, and `supabase/`) to your Abuja Connect repository. Do not upload `.env` files or secret keys.
+Create a **Web Service** (not a Static Site), connect this GitHub repository, and set:
 
-### 2. Deploy on Render
-Create or update a **Web Service** connected to your GitHub repository. Use:
-- Runtime: Node
-- Build command: `npm install`
-- Start command: `npm start`
+- **Runtime:** Node
+- **Build Command:** leave blank
+- **Start Command:** `npm start`
+- **Instance type:** Free, if offered
 
-If the project is inside a subfolder in the repository, set Render's **Root Directory** to that folder.
+Add these Environment Variables in Render → your service → **Environment**:
 
-In Render → your service → **Environment**, add:
 - `SUPABASE_URL` = your Supabase Project URL
 - `SUPABASE_PUBLISHABLE_KEY` = your Supabase publishable key (or legacy anon key)
 
-Save changes and redeploy. The Node server serves `/config.js` using these environment variables. These two values are browser-safe Supabase credentials; never use a `sb_secret_` or `service_role` key here.
+Do not add a database password, `service_role` key, or Supabase secret key to these variables. The publishable key is intended for browser use; database access must be protected by Row Level Security (RLS).
 
-### 3. Supabase authentication URLs
-In Supabase → Authentication → URL Configuration:
-- Site URL: your exact Render HTTPS URL, e.g. `https://your-service.onrender.com`
-- Redirect URLs: add that exact URL. Add `https://your-service.onrender.com/**` if supported/needed for callback paths.
+After saving environment variables, redeploy. Visit `https://YOUR-RENDER-HOST/config.js` to check that the endpoint returns `window.ABUJA_CONFIG` with your project URL and a publishable key. Do not share that URL's contents publicly if you prefer not to.
 
-Enable Email provider and email confirmation if you want confirmed email addresses.
+## Supabase setup
 
-### 4. Set up the database schema
-Review `supabase/schema.sql` carefully, then run it in the SQL Editor of the dedicated Abuja Connect Supabase project. Do not run it in a different project. It creates/updates the tables and policies for this starter; it is not a complete production launch. See the limitations below.
+1. Create/select a dedicated Supabase project for Abuja Connect.
+2. In Authentication settings, enable Email sign-ups and email confirmation.
+3. In Authentication → URL Configuration, set Site URL to your exact Render URL and add that URL to Redirect URLs (for example `https://YOUR-RENDER-HOST/**` if wildcard paths are supported).
+4. Open SQL Editor and review/run `supabase/schema.sql` in the Abuja Connect project only. It creates profiles, subscriptions, likes, matches, and messages with RLS policies. Do not run it in another project.
 
-### 5. GitHub Pages option (static hosting)
-GitHub Pages does not run `server.js` or read Render environment variables. If you also publish the `public/` folder using a static host, edit `public/config.js` and replace the two placeholders with the same Project URL and publishable key. Commit the change and publish the static files. Only the Project URL and publishable key belong there. Do not put database passwords, Supabase secret/service-role keys, or payment secret keys in browser files.
+## GitHub update
 
-For a single main live website, use the Render URL as the canonical site and add it to Supabase URL Configuration. If you want to use GitHub Pages as a second live site too, add that Pages URL to Supabase Redirect URLs as well.
+Extract the ZIP and upload/commit the contents of the `abuja-connect-work` folder into the root of your existing Abuja Connect repository so `package.json`, `server.js`, `public/`, and `supabase/` are at the repository root. Keep a backup or use a branch before replacing files.
 
-## What this starter currently includes
-- Responsive landing/auth interface.
-- Supabase email/password sign-up and login.
-- Profile creation/discovery and starter like/match database logic.
-- Database row-level security policies in `supabase/schema.sql`.
+## What is and isn't implemented
 
-## Not production-complete yet
-- Phone OTP/Sent.dm integration is not wired in yet.
-- Password reset UI, email/phone dual verification flow, robust age verification, block/report/moderation, photo storage policies, rate limiting, and end-to-end testing remain to be completed.
-- The chat panel is a design preview, not a full realtime chat product.
-- Paystack checkout and trusted server-side payment verification are not implemented. Never mark users paid from browser code.
-- Before public launch, review the schema and policies, test with test accounts, and arrange security testing.
+- Email/password registration and login through Supabase are implemented in the frontend, subject to correct Supabase settings and the schema being applied.
+- New user profile creation and basic profile discovery/likes/mutual matches are connected to the supplied SQL schema.
+- `public/config.js` is served dynamically by `server.js` on Render from the two environment variables above.
+- Sent.dm phone OTP, Google OAuth provider setup, Paystack checkout, full real-time messaging UI, image upload, reporting/moderation, and production hardening are not fully implemented/configured. Do not advertise those as active until separately completed and tested.
+
+## Important
+
+- Do not expose Supabase secret/service-role keys in frontend code or GitHub.
+- Supabase publishable keys are public by design, but RLS policies and auth rules must be configured correctly.
+- Test with a new test account and email before inviting real users.
