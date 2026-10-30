@@ -1,6 +1,6 @@
 # Abuja Connect — GitHub + Render + Supabase
 
-This package is based on the newer Abuja Connect website you supplied. It preserves the current landing page, styles, logo, and client-side interactions while adding a small Node.js server that serves the frontend and provides Supabase browser configuration from Render environment variables.
+This package contains the Abuja Connect redesign based on the original visual blueprint and the latest red-edition project files. The public experience is a full-screen Abuja landmark slideshow with one centered Login / Sign Up card. Existing users go directly to the social dashboard after login; first-time registrants complete the Welcome / Profile Setup screen before entering the dashboard.
 
 ## Deploy on Render
 
@@ -30,6 +30,14 @@ After saving environment variables, redeploy. Visit `https://YOUR-RENDER-HOST/co
 ## GitHub update
 
 Extract the ZIP and upload/commit the contents of the `abuja-connect-work` folder into the root of your existing Abuja Connect repository so `package.json`, `server.js`, `public/`, and `supabase/` are at the repository root. Keep a backup or use a branch before replacing files.
+
+## Updated user journey
+
+- Public visitors see only the full-screen changing Abuja background and centered authentication card. Login and Sign Up are tabs in the same card.
+- Successful login checks for an existing profile and routes returning members directly to the dashboard.
+- Successful first-time registration routes to Welcome / Profile Setup. The profile is saved to the `profiles` table before the dashboard opens.
+- If email confirmation is enabled and Supabase does not create a session immediately, the visitor is asked to confirm their email and then log in; a missing profile routes them to setup.
+- The profile setup form collects display name, gender, city, about text, and interests.
 
 ## What is and isn't implemented
 

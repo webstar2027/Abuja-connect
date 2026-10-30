@@ -248,3 +248,43 @@ footer a{color:#c51e36}
  .dashboard-main .profile-photo{height:205px}
 }
 @media(prefers-reduced-motion:reduce){.city-slide{animation:none}}
+
+/* Final flow: immersive public sign-in, first-run profile setup, then member app. */
+.site-header[hidden],.hero[hidden],.profile-onboarding[hidden],.member-dashboard[hidden]{display:none!important}
+body:not(.is-authenticated) .site-header{display:none}
+body:not(.is-authenticated) main>section:not(.hero),body:not(.is-authenticated) footer{display:none!important}
+body:not(.is-authenticated) .hero{min-height:100svh;height:100svh;width:100%;display:flex;align-items:center;justify-content:center;padding:28px 18px;background:#170b11}
+body:not(.is-authenticated) .hero-overlay{background:linear-gradient(135deg,rgba(20,5,12,.52),rgba(12,12,24,.44) 55%,rgba(28,5,13,.6))}
+body:not(.is-authenticated) .auth-card{width:min(100%,455px);max-width:455px;margin:auto;padding:30px 34px 25px;border-radius:25px;background:rgba(255,255,255,.97);color:#21191e;text-align:center;box-shadow:0 28px 100px rgba(0,0,0,.38);backdrop-filter:blur(16px)}
+.auth-logo{display:block;width:220px;height:76px;object-fit:contain;margin:0 auto 2px}
+.auth-tagline{display:flex;align-items:center;justify-content:center;gap:9px;margin:0 0 20px;color:#3f3740;font-size:10px;font-weight:850;letter-spacing:.07em}
+.auth-tagline i{width:4px;height:4px;border-radius:50%;background:#e3263d}
+.auth-heading{font-size:27px;line-height:1.15;margin:4px 0 7px;color:#21191e}
+.auth-intro{margin:0 auto 19px;color:#776c72;font-size:13px}
+.auth-tabs{display:flex!important;background:#f5e9ec;border-radius:12px;padding:4px;margin:0 0 16px}
+.auth-tab{padding:11px;border-radius:9px;font-size:13px;color:#766970}
+.auth-tab.active{background:#fff;color:#c51e36;box-shadow:0 2px 9px #38121b12}
+body:not(.is-authenticated) .input-wrap{height:49px;margin:11px 0;border-radius:11px;border-color:#eadde1}
+body:not(.is-authenticated) .input-wrap input,body:not(.is-authenticated) .input-wrap select{font-size:13px}
+body:not(.is-authenticated) .auth-submit{height:49px;margin-top:8px;border-radius:11px}
+body:not(.is-authenticated) .form-message{font-size:11px;line-height:1.45}
+body:not(.is-authenticated) .location-chip{display:none}
+.profile-onboarding{min-height:100svh;padding:36px 18px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 10% 10%,#fff0f2,transparent 35%),linear-gradient(145deg,#fff,#fff7f8);color:#24191e}
+.onboarding-card{width:min(100%,660px);padding:clamp(24px,5vw,48px);border:1px solid #f0dfe3;border-radius:26px;background:#fff;box-shadow:0 22px 70px #57132612}
+.onboarding-logo{display:block;width:190px;height:64px;object-fit:contain;margin:0 auto 20px}
+.onboarding-card>.eyebrow,.onboarding-card>h1,.onboarding-lead{text-align:center}
+.onboarding-card h1{margin:4px 0 9px;font-size:clamp(28px,4vw,39px);letter-spacing:-1.2px;color:#21191e}
+.onboarding-lead{max-width:480px;margin:0 auto 25px;color:#766d72;font-size:14px}
+.onboarding-card .profile-form{display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:0;border:0;box-shadow:none}
+.onboarding-card .profile-form label{display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:750;color:#41363b}
+.onboarding-card .profile-form label:nth-of-type(4),.onboarding-card .profile-form label:nth-of-type(5),.onboarding-card .profile-form button,.onboarding-card .profile-form p{grid-column:1/-1}
+.onboarding-card .profile-form input,.onboarding-card .profile-form select,.onboarding-card .profile-form textarea{width:100%;min-height:45px;padding:11px 13px;border:1px solid #eadde1;border-radius:10px;background:#fff;color:#24191e;font:inherit;font-size:13px}
+.onboarding-card .profile-form textarea{resize:vertical}
+.onboarding-card .profile-form button{min-height:49px;border-radius:11px}
+.onboarding-card #onboarding-message{margin:0;color:#b51d32;font-size:12px}
+body.is-authenticated{background:#faf7f8;color:#21191e}
+body.is-authenticated .site-header{display:flex;position:sticky;background:rgba(255,255,255,.96);color:#24191e}
+body.is-authenticated main>section:not(#member-dashboard):not(#profile-onboarding){display:none!important}
+body.is-authenticated footer{display:none!important}
+body.is-authenticated .member-dashboard{display:grid}
+@media(max-width:600px){body:not(.is-authenticated) .auth-card{padding:25px 19px 20px;border-radius:20px}.auth-logo{width:190px;height:66px}.auth-tagline{font-size:9px;gap:6px}.auth-heading{font-size:24px}.onboarding-card .profile-form{grid-template-columns:1fr}.onboarding-card .profile-form label{grid-column:1/-1}.onboarding-card{padding:25px 19px}}

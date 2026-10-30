@@ -52,14 +52,16 @@ let activeDashboardView='dashboard', selectedMatch=null, memberProfile=null;
 function renderAuthState(){
   const authenticated=!!currentUser;
   document.body.classList.toggle('is-authenticated',authenticated);
-  const dashboard=$('#member-dashboard'); if(dashboard) dashboard.hidden=!authenticated;
+  $('#member-dashboard').hidden=true;
+  $('#profile-onboarding').hidden=true;
+  $('#auth-card').closest('.hero').hidden=authenticated;
+  document.querySelector('.site-header').hidden=!authenticated;
   if(currentUser){
     const name=currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || 'member';
     $('#member-name').textContent=name;
     $('#sidebar-member-name').textContent=name;
     $('#member-email').textContent=currentUser.email || '';
     $('#member-message').textContent='';
-    showDashboardView(activeDashboardView);
   }
 }
 function showDashboardView(view){
@@ -78,9 +80,70 @@ function showDashboardView(view){
 }
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showDashboardView(b.dataset.view)));
 $('#sign-out')?.addEventListener('click',doSignOut);$('#header-logout')?.addEventListener('click',doSignOut);
-async function doSignOut(){if(!supabase)return;const {error}=await supabase.auth.signOut();if(error){$('#member-message').textContent=error.message;return;}currentUser=null;selectedMatch=null;document.body.classList.remove('is-authenticated');$('#member-dashboard').hidden=true;window.scrollTo({top:0,behavior:'smooth'});setMessage('You have logged out successfully.');}
-async function refreshSession(){if(!supabase){setMessage('Setup required: add your Supabase Project URL and publishable key in Render environment settings.',true);return;}const {data,error}=await supabase.auth.getSession();if(error){setMessage(error.message,true);return;}currentUser=data.session?.user||null;renderAuthState();if(currentUser){await loadProfiles('#dashboard-profiles');}else setMessage('Enter your email and password to log in, or choose Sign Up to create an account.');}
-$('#auth-form').addEventListener('submit',async e=>{e.preventDefault();if(!supabase){setMessage('Supabase is not configured. Please check the Render environment settings.',true);return;}if(authMode==='signup'&&!$('#signup-gender').value){setMessage('Please select your gender.',true);return;}if(authMode==='signup'&&!$('#age-check').checked){setMessage('Please confirm you are 18 or older.',true);return;}const email=$('#auth-email').value.trim(),password=$('#auth-password').value;$('#auth-submit').disabled=true;setMessage(authMode==='signup'?'Creating your account…':'Signing in…');try{let result;if(authMode==='signup'){result=await supabase.auth.signUp({email,password,options:{data:{display_name:$('#display-name').value.trim(),gender:$('#signup-gender').value,account_type:$('#account-type').value,age_confirmed:true}}});if(result.error)throw result.error;if(result.data.user&&!result.data.session){setMessage('Account created. Check your email to confirm your account, then log in.');return;}}else{result=await supabase.auth.signInWithPassword({email,password});if(result.error)throw result.error;}currentUser=result.data.user;activeDashboardView='dashboard';renderAuthState();await loadMyProfile();await loadProfiles('#dashboard-profiles');window.scrollTo({top:0,behavior:'smooth'});}catch(err){setMessage(err.message||'Could not complete request.',true);}finally{$('#auth-submit').disabled=false;}});
+async function doSignOut(){if(!supabase)return;const {error}=await supabase.auth.signOut();if(error){$('#member-message').textContent=error.message;return;}currentUser=null;selectedMatch=null;memberProfile=null;$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');setAuthMode('login');setMessage('You have logged out successfully.');window.scrollTo({top:0,behavior:'smooth'});}
+function showOnboarding(){
+  renderAuthState();
+  $('#profile-onboarding').hidden=false;
+  document.querySelector('.site-header').hidden=true;
+  $('#onboard-display-name').value=currentUser?.user_metadata?.display_name||currentUser?.email?.split('@')[0]||'';
+  $('#onboard-gender').value=currentUser?.user_metadata?.gender||'';
+  $('#onboard-city').value='Abuja';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function enterDashboard(){
+  document.querySelector('.site-header').hidden=false;
+  $('#profile-onboarding').hidden=true;
+  $('#member-dashboard').hidden=false;
+  renderAuthState();
+  $('#member-dashboard').hidden=false;
+  activeDashboardView='dashboard';
+  showDashboardView('dashboard');
+  await loadProfiles('#dashboard-profiles');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function routeAuthenticatedUser(isNewSignup=false){
+  if(!currentUser)return;
+  const {data,error}=await supabase.from('profiles').select('id,display_name,gender,city,bio,interests,account_type').eq('id',currentUser.id).maybeSingle();
+  if(error){setMessage(error.message,true);return;}
+  memberProfile=data||null;
+  if(isNewSignup||!data){showOnboarding();return;}
+  const name=data.display_name||currentUser.user_metadata?.display_name||'member';
+  $('#member-name').textContent=name;$('#sidebar-member-name').textContent=name;$('#member-email').textContent=currentUser.email||'';
+  $('#profile-display-name').value=data.display_name||'';$('#profile-gender').value=data.gender||'';$('#profile-city').value=data.city||'Abuja';$('#profile-bio').value=data.bio||'';$('#profile-interests').value=(data.interests||[]).join(', ');
+  await enterDashboard();
+}
+async function refreshSession(){
+  if(!supabase){setMessage('Setup required: add your Supabase Project URL and publishable key in Render environment settings.',true);return;}
+  const {data,error}=await supabase.auth.getSession();if(error){setMessage(error.message,true);return;}
+  currentUser=data.session?.user||null;
+  if(currentUser)await routeAuthenticatedUser(false);else{renderAuthState();setMessage('Enter your email and password to log in, or choose Sign Up to create an account.');}
+}
+$('#auth-form').addEventListener('submit',async e=>{
+  e.preventDefault();if(!supabase){setMessage('Supabase is not configured. Please check the Render environment settings.',true);return;}
+  if(authMode==='signup'&&!$('#signup-gender').value){setMessage('Please select your gender.',true);return;}
+  if(authMode==='signup'&&!$('#age-check').checked){setMessage('Please confirm you are 18 or older.',true);return;}
+  const creating=authMode==='signup',email=$('#auth-email').value.trim(),password=$('#auth-password').value;
+  $('#auth-submit').disabled=true;setMessage(creating?'Creating your account…':'Signing in…');
+  try{
+    let result;
+    if(creating){
+      result=await supabase.auth.signUp({email,password,options:{data:{display_name:$('#display-name').value.trim(),gender:$('#signup-gender').value,account_type:$('#account-type').value,age_confirmed:true}}});
+      if(result.error)throw result.error;
+      if(result.data.user&&!result.data.session){setMessage('Your account has been created. Please confirm your email, then log in to finish setting up your profile.');return;}
+    }else{result=await supabase.auth.signInWithPassword({email,password});if(result.error)throw result.error;}
+    currentUser=result.data.user;
+    await routeAuthenticatedUser(creating);
+  }catch(err){setMessage(err.message||'Could not complete request.',true);}
+  finally{$('#auth-submit').disabled=false;}
+});
+$('#onboarding-form')?.addEventListener('submit',async e=>{
+  e.preventDefault();if(!supabase||!currentUser)return;
+  const button=$('#onboarding-submit');button.disabled=true;$('#onboarding-message').textContent='Saving your profile…';
+  const values={id:currentUser.id,display_name:$('#onboard-display-name').value.trim(),gender:$('#onboard-gender').value,city:$('#onboard-city').value.trim(),bio:$('#onboard-bio').value.trim(),interests:$('#onboard-interests').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20),account_type:currentUser.user_metadata?.account_type||'regular',age_confirmed:true,updated_at:new Date().toISOString()};
+  try{const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;memberProfile=values;$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;await enterDashboard();}
+  catch(err){$('#onboarding-message').textContent=err.message||'Could not save your profile. Please try again.';}
+  finally{button.disabled=false;}
+});
 $('#toggle-password').addEventListener('click',()=>{let input=$('#auth-password'),show=input.type==='password';input.type=show?'text':'password';$('#toggle-password').setAttribute('aria-label',show?'Hide password':'Show password');});
 document.querySelectorAll('[data-auth]').forEach(b=>b.addEventListener('click',()=>{if(currentUser){showDashboardView('dashboard');window.scrollTo({top:0,behavior:'smooth'});return;}setAuthMode(b.dataset.auth);$('#auth-card').scrollIntoView({behavior:'smooth',block:'center'});}));
 document.querySelectorAll('[data-type]').forEach(b=>b.addEventListener('click',()=>{selectedType=b.dataset.type;document.querySelectorAll('[data-type]').forEach(x=>x.classList.toggle('active',x===b));renderPrices();}));
@@ -103,7 +166,7 @@ $('#refresh-discover')?.addEventListener('click',()=>loadProfiles('#discover-pro
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 async function likeProfile(id,button){if(!supabase||!currentUser){notice('Sign in required','Please sign in to express interest in a profile.');return;}button.disabled=true;try{const {error}=await supabase.from('likes').upsert({from_user:currentUser.id,to_user:id},{onConflict:'from_user,to_user'});if(error)throw error;button.textContent='♥ Liked';button.classList.remove('btn-blue');button.classList.add('btn-outline');const {count}=await supabase.from('likes').select('id',{count:'exact',head:true}).eq('from_user',currentUser.id);$('#stat-likes').textContent=String(count||0);notice('Interest sent','Your interest was saved. A match is created only if the other person also likes your profile.');}catch(e){notice('Could not like profile',e.message||'Please try again.');button.disabled=false;}}
-$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;renderAuthState();if(currentUser){loadMyProfile();loadProfiles('#dashboard-profiles');}});refreshSession();
+$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;if(!currentUser){$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');}});refreshSession();
 
 
 })();

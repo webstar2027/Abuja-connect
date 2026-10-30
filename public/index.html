@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header class="site-header">
+  <header class="site-header" hidden>
     <a class="brand" href="#home" aria-label="Abuja Connect home"><img src="/assets/abuja-connect-logo.png" alt="Abuja Connect"></a>
     <button id="menu" class="menu-button" aria-label="Open navigation" aria-expanded="false">☰</button>
     <nav id="nav" class="main-nav" aria-label="Main navigation">
@@ -29,23 +29,13 @@
     <section class="hero" id="home" data-theme="day">
       <div class="city-slideshow" id="city-slideshow" aria-hidden="true"></div>
       <div class="hero-overlay"></div>
-      <div class="hero-copy">
-        <img class="hero-brand" src="/assets/abuja-connect-logo.png" alt="Abuja Connect">
-        <h1>Real People.<br><span>Real Connections.</span></h1>
-        <p>Meet amazing people in Abuja and build meaningful relationships.</p>
-        <div class="feature-list">
-          <div class="feature-item"><span class="feature-icon">♧</span><div><strong>Create Your Profile</strong><small>Show who you are and what you're looking for</small></div></div>
-          <div class="feature-item"><span class="feature-icon">♡</span><div><strong>Match &amp; Connect</strong><small>Like, match and start chatting</small></div></div>
-          <div class="feature-item"><span class="feature-icon">♢</span><div><strong>Safe &amp; Secure</strong><small>Verified profiles and real people</small></div></div>
-          <div class="feature-item"><span class="feature-icon">⌖</span><div><strong>Abuja &amp; Beyond</strong><small>Meet people in Abuja and nearby areas</small></div></div>
-        </div>
-        <p class="adult-note">For adults aged 18 and over only.</p>
-      </div>
 
       <div class="auth-card" id="auth-card">
-        <h2 class="auth-heading">Welcome Back</h2>
+        <img class="auth-logo" src="/assets/abuja-connect-logo.png" alt="Abuja Connect">
+        <p class="auth-tagline">REAL PEOPLE <i></i> REAL CONNECTIONS <i></i> ABUJA</p>
+        <h2 class="auth-heading">Welcome to Abuja Connect</h2>
         <p class="auth-intro">Log in to your Abuja Connect account</p>
-        <div class="auth-tabs visually-hidden" role="tablist" aria-label="Account access">
+        <div class="auth-tabs" role="tablist" aria-label="Account access">
           <button class="auth-tab active" data-auth-tab="login" role="tab" aria-selected="true">Login</button>
           <button class="auth-tab" data-auth-tab="signup" role="tab" aria-selected="false">Sign Up</button>
         </div>
@@ -65,6 +55,24 @@
         <p id="auth-message" class="form-message" role="status">Enter your details to continue. If setup is incomplete, we will explain what is needed.</p>
       </div>
       <div class="location-chip"><span>⌖</span> Abuja, Nigeria</div>
+    </section>
+
+    <section id="profile-onboarding" class="profile-onboarding" hidden aria-live="polite">
+      <div class="onboarding-card">
+        <img src="/assets/abuja-connect-logo.png" alt="Abuja Connect" class="onboarding-logo">
+        <p class="eyebrow">YOUR FIRST STEP</p>
+        <h1>Welcome to Abuja Connect</h1>
+        <p class="onboarding-lead">Let's set up your profile so people can get to know you. You can update these details later.</p>
+        <form id="onboarding-form" class="profile-form">
+          <label>Display name<input id="onboard-display-name" maxlength="80" required placeholder="What should people call you?"></label>
+          <label>Gender<select id="onboard-gender" required><option value="">Select gender</option><option value="woman">Woman</option><option value="man">Man</option><option value="non_binary">Non-binary</option><option value="prefer_not_to_say">Prefer not to say</option></select></label>
+          <label>City<input id="onboard-city" maxlength="100" value="Abuja" required></label>
+          <label>About you<textarea id="onboard-bio" rows="3" maxlength="1000" placeholder="Share a little about yourself"></textarea></label>
+          <label>Interests <span class="field-hint">Separate interests with commas</span><input id="onboard-interests" maxlength="300" placeholder="Music, travel, movies"></label>
+          <button class="btn btn-blue" id="onboarding-submit" type="submit">Save profile &amp; continue</button>
+          <p id="onboarding-message" role="status"></p>
+        </form>
+      </div>
     </section>
 
     <section id="member-dashboard" class="member-dashboard" hidden aria-live="polite">
