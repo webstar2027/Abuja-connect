@@ -47,15 +47,7 @@ forgotButton?.addEventListener('click',async()=>{
   }catch(err){setMessage(err.message||'Could not request a password reset.',true);}
   finally{forgotButton.disabled=false;}
 });
-document.querySelectorAll('[data-social="Google"]').forEach(button=>button.addEventListener('click',async()=>{
-  if(!supabase){setMessage('Google sign-in is unavailable until Supabase is configured.',true);return;}
-  button.disabled=true;
-  try{
-    const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});
-    if(error)throw error;
-  }catch(err){setMessage(err.message||'Could not start Google sign-in.',true);button.disabled=false;}
-}));
-
+// Google OAuth removed: Abuja Connect uses email and password authentication only.
 let activeDashboardView='dashboard', selectedMatch=null, memberProfile=null;
 function renderAuthState(){
   const authenticated=!!currentUser;
