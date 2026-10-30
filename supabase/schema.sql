@@ -6,6 +6,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null default 'Abuja Connect member',
   account_type text not null default 'regular' check (account_type in ('regular','escort')),
+  gender text check (gender in ('woman','man','non_binary','prefer_not_to_say')),
   city text not null default 'Abuja',
   bio text not null default '',
   interests text[] not null default '{}',
