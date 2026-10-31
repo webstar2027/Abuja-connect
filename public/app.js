@@ -119,22 +119,67 @@ async function refreshSession(){
   if(currentUser)await routeAuthenticatedUser(false);else{renderAuthState();setMessage('Enter your email and password to log in, or choose Sign Up to create an account.');}
 }
 $('#auth-form').addEventListener('submit',async e=>{
-  e.preventDefault();if(!supabase){setMessage('Supabase is not configured. Please check the Render environment settings.',true);return;}
-  if(authMode==='signup'&&!$('#signup-gender').value){setMessage('Please select your gender.',true);return;}
-  if(authMode==='signup'&&!$('#age-check').checked){setMessage('Please confirm you are 18 or older.',true);return;}
-  const creating=authMode==='signup',email=$('#auth-email').value.trim(),password=$('#auth-password').value;
-  $('#auth-submit').disabled=true;setMessage(creating?'Creating your account…':'Signing in…');
+  e.preventDefault();
+  const form=e.currentTarget;
+  const submit=$('#auth-submit');
+  if(submit.disabled)return;
+  const creating=authMode==='signup';
+  const email=$('#auth-email').value.trim();
+  const password=$('#auth-password').value;
+  const displayName=$('#display-name').value.trim();
+
+  // Explicit validation keeps mobile browsers from silently blocking the submit event.
+  if(!email || !$('#auth-email').checkValidity()){
+    setMessage('Please enter a valid email address.',true);$('#auth-email').focus();return;
+  }
+  if(!password || (creating && password.length<8)){
+    setMessage(creating?'Your password must be at least 8 characters.':'Please enter your password.',true);$('#auth-password').focus();return;
+  }
+  if(creating && !displayName){
+    setMessage('Please enter your display name.',true);$('#display-name').focus();return;
+  }
+  if(creating&&!$('#signup-gender').value){
+    setMessage('Please select your gender.',true);$('#signup-gender').focus();return;
+  }
+  if(creating&&!$('#age-check').checked){
+    setMessage('Please confirm you are 18 or older.',true);$('#age-check').focus();return;
+  }
+  if(!supabase){
+    setMessage('Supabase is not configured. Check SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in Render.',true);return;
+  }
+
+  submit.disabled=true;
+  submit.textContent=creating?'Creating account…':'Signing in…';
+  setMessage(creating?'Creating your account…':'Signing in…');
   try{
     let result;
     if(creating){
-      result=await supabase.auth.signUp({email,password,options:{data:{display_name:$('#display-name').value.trim(),gender:$('#signup-gender').value,account_type:$('#account-type').value,age_confirmed:true}}});
-      if(result.error)throw result.error;
-      if(result.data.user&&!result.data.session){setMessage('Your account has been created. Please confirm your email, then log in to finish setting up your profile.');return;}
-    }else{result=await supabase.auth.signInWithPassword({email,password});if(result.error)throw result.error;}
+      result=await supabase.auth.signUp({
+        email,password,
+        options:{data:{
+          display_name:displayName,
+          gender:$('#signup-gender').value,
+          account_type:$('#account-type').value,
+          age_confirmed:true
+        }}
+      });
+    }else{
+      result=await supabase.auth.signInWithPassword({email,password});
+    }
+    if(result.error)throw result.error;
+    if(creating && result.data.user && !result.data.session){
+      setMessage('Your account has been created. Check your email to confirm it, then log in.');
+      return;
+    }
     currentUser=result.data.user;
+    if(!currentUser)throw new Error('Authentication did not return a user. Please try again.');
     await routeAuthenticatedUser(creating);
-  }catch(err){setMessage(err.message||'Could not complete request.',true);}
-  finally{$('#auth-submit').disabled=false;}
+  }catch(err){
+    setMessage(err?.message||'Could not complete your request. Please try again.',true);
+  }finally{
+    submit.disabled=false;
+    submit.textContent=creating?'Create account':'Login';
+  }
 });
 $('#onboarding-form')?.addEventListener('submit',async e=>{
   e.preventDefault();if(!supabase||!currentUser)return;

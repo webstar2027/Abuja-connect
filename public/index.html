@@ -39,7 +39,7 @@
           <button class="auth-tab active" data-auth-tab="login" role="tab" aria-selected="true">Login</button>
           <button class="auth-tab" data-auth-tab="signup" role="tab" aria-selected="false">Sign Up</button>
         </div>
-        <form id="auth-form">
+        <form id="auth-form" novalidate>
           <label class="input-wrap"><span aria-hidden="true">✉</span><input id="auth-email" type="email" placeholder="Email address" autocomplete="email" required></label>
           <label class="input-wrap"><span aria-hidden="true">♙</span><input id="auth-password" type="password" placeholder="Password" minlength="8" autocomplete="current-password" required><button class="password-toggle" type="button" id="toggle-password" aria-label="Show password">◉</button></label>
           <div class="login-options"><label class="remember"><input type="checkbox" id="remember-me" checked> Remember me</label><button type="button" id="forgot-password" class="text-link">Forgot password?</button></div>
