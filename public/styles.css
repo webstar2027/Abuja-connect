@@ -288,3 +288,36 @@ body.is-authenticated main>section:not(#member-dashboard):not(#profile-onboardin
 body.is-authenticated footer{display:none!important}
 body.is-authenticated .member-dashboard{display:grid}
 @media(max-width:600px){body:not(.is-authenticated) .auth-card{padding:25px 19px 20px;border-radius:20px}.auth-logo{width:190px;height:66px}.auth-tagline{font-size:9px;gap:6px}.auth-heading{font-size:24px}.onboarding-card .profile-form{grid-template-columns:1fr}.onboarding-card .profile-form label{grid-column:1/-1}.onboarding-card{padding:25px 19px}}
+
+
+/* Header sign-out action: clear red button for authenticated members. */
+body.is-authenticated .site-header .main-nav #header-logout{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:40px;
+  padding:10px 19px;
+  border:1px solid #e3263d;
+  border-radius:999px;
+  background:#e3263d;
+  color:#fff;
+  font-size:13px;
+  font-weight:850;
+  line-height:1;
+  white-space:nowrap;
+  box-shadow:0 5px 14px rgba(227,38,61,.18);
+}
+body.is-authenticated .site-header .main-nav #header-logout:hover{
+  background:#bd1932;
+  border-color:#bd1932;
+  color:#fff;
+  transform:translateY(-1px);
+  box-shadow:0 8px 19px rgba(189,25,50,.25);
+}
+body.is-authenticated .site-header .main-nav #header-logout:focus-visible{
+  outline:3px solid rgba(227,38,61,.28);
+  outline-offset:3px;
+}
+@media(max-width:760px){
+  body.is-authenticated .site-header .main-nav #header-logout{width:100%;}
+}
