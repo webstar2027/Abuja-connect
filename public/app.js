@@ -35,18 +35,57 @@ function setAuthMode(mode){authMode=mode==='signup'?'signup':'login';document.qu
 function setMessage(text,isError=false){$('#auth-message').textContent=text;$('#auth-message').style.color=isError?'#b4233d':'#16814a';}
 
 const forgotButton=$('#forgot-password');
+const resetPanel=$('#password-reset-panel');
+const resetForm=$('#password-reset-form');
+function showPasswordReset(){
+  if(!resetPanel)return;
+  $('#auth-form').hidden=true;
+  $('#auth-switch').hidden=true;
+  $('#signup-fields').hidden=true;
+  resetPanel.hidden=false;
+  $('#reset-new-password').focus();
+  setMessage('Choose a new password for your Abuja Connect account.');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showLoginAfterReset(message){
+  if(resetPanel)resetPanel.hidden=true;
+  $('#auth-form').hidden=false;
+  $('#auth-switch').hidden=false;
+  setAuthMode('login');
+  $('#auth-password').value='';
+  setMessage(message);
+}
 forgotButton?.addEventListener('click',async()=>{
   const email=$('#auth-email').value.trim();
-  if(!email){setMessage('Enter your email address first, then choose Forgot password.',true);$('#auth-email').focus();return;}
+  if(!email){setMessage('Enter your registered email address first, then choose Forgot password.',true);$('#auth-email').focus();return;}
   if(!supabase){setMessage('Password reset is unavailable until Supabase is configured.',true);return;}
   forgotButton.disabled=true;
   try{
     const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
     if(error)throw error;
-    setMessage('If an account exists for that email, a password-reset link will be sent.');
+    setMessage('If an account exists for that email, we have sent a password-reset link. Check your inbox and Spam folder.');
   }catch(err){setMessage(err.message||'Could not request a password reset.',true);}
   finally{forgotButton.disabled=false;}
 });
+resetForm?.addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!supabase){setMessage('Password reset is unavailable until Supabase is configured.',true);return;}
+  const password=$('#reset-new-password').value;
+  const confirm=$('#reset-confirm-password').value;
+  if(password.length<8){setMessage('Your new password must be at least 8 characters.',true);return;}
+  if(password!==confirm){setMessage('The passwords do not match. Please try again.',true);return;}
+  const submit=resetForm.querySelector('button[type="submit"]');
+  submit.disabled=true;
+  try{
+    const {error}=await supabase.auth.updateUser({password});
+    if(error)throw error;
+    resetForm.reset();
+    showLoginAfterReset('Your password has been changed successfully. Please log in with your new password.');
+    await supabase.auth.signOut();
+  }catch(err){setMessage(err.message||'We could not update your password. Request a new reset link and try again.',true);}
+  finally{submit.disabled=false;}
+});
+$('#cancel-password-reset')?.addEventListener('click',()=>showLoginAfterReset('Password reset cancelled. You can log in with your current password.'));
 // Google OAuth removed: Abuja Connect uses email and password authentication only.
 let activeDashboardView='dashboard', selectedMatch=null, memberProfile=null;
 function renderAuthState(){
@@ -211,7 +250,7 @@ $('#refresh-discover')?.addEventListener('click',()=>loadProfiles('#discover-pro
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 async function likeProfile(id,button){if(!supabase||!currentUser){notice('Sign in required','Please sign in to express interest in a profile.');return;}button.disabled=true;try{const {error}=await supabase.from('likes').upsert({from_user:currentUser.id,to_user:id},{onConflict:'from_user,to_user'});if(error)throw error;button.textContent='♥ Liked';button.classList.remove('btn-blue');button.classList.add('btn-outline');const {count}=await supabase.from('likes').select('id',{count:'exact',head:true}).eq('from_user',currentUser.id);$('#stat-likes').textContent=String(count||0);notice('Interest sent','Your interest was saved. A match is created only if the other person also likes your profile.');}catch(e){notice('Could not like profile',e.message||'Please try again.');button.disabled=false;}}
-$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;if(!currentUser){$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');}});refreshSession();
+$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((event,session)=>{currentUser=session?.user||null;if(event==='PASSWORD_RECOVERY'){renderAuthState();showPasswordReset();return;}if(!currentUser){$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');}});refreshSession();
 
 
 })();

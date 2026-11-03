@@ -321,3 +321,95 @@ body.is-authenticated .site-header .main-nav #header-logout:focus-visible{
 @media(max-width:760px){
   body.is-authenticated .site-header .main-nav #header-logout{width:100%;}
 }
+
+
+/* Responsive authentication layout fix: allow the full form to scroll on every device. */
+html {
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: auto;
+}
+body:not(.is-authenticated) {
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+body:not(.is-authenticated) main {
+  min-height: 100%;
+  height: auto;
+}
+body:not(.is-authenticated) .hero {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  height: auto;
+  max-height: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  padding: clamp(18px, 4vh, 42px) 18px;
+}
+body:not(.is-authenticated) .auth-card {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: min(100%, 455px);
+  max-width: 455px;
+  max-height: none;
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+body:not(.is-authenticated) .auth-form,
+body:not(.is-authenticated) #auth-form {
+  min-height: 0;
+  height: auto;
+  overflow: visible;
+}
+body:not(.is-authenticated) .auth-submit {
+  width: 100%;
+  min-height: 50px;
+  margin-bottom: 4px;
+}
+body:not(.is-authenticated) .form-message,
+body:not(.is-authenticated) #auth-message {
+  display: block;
+  min-height: 1.4em;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 760px) {
+  body:not(.is-authenticated) .hero {
+    min-height: 100vh;
+    min-height: 100svh;
+    height: auto;
+    align-items: flex-start;
+    justify-content: center;
+    padding: max(18px, env(safe-area-inset-top)) 14px
+             max(28px, env(safe-area-inset-bottom));
+    overflow: visible;
+  }
+  body:not(.is-authenticated) .auth-card {
+    width: 100%;
+    max-width: 455px;
+    margin: 0 auto;
+    padding: 24px 18px 22px;
+  }
+  body:not(.is-authenticated) .auth-logo {
+    width: min(190px, 70%);
+    height: 62px;
+  }
+  body:not(.is-authenticated) .auth-heading {
+    font-size: clamp(23px, 6vw, 27px);
+  }
+}
+@media (max-height: 760px) and (min-width: 761px) {
+  body:not(.is-authenticated) .hero {
+    align-items: flex-start;
+    padding-top: 22px;
+    padding-bottom: 28px;
+  }
+}
