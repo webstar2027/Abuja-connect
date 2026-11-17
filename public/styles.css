@@ -413,3 +413,79 @@ body:not(.is-authenticated) #auth-message {
     padding-bottom: 28px;
   }
 }
+
+
+/* Abuja Connect 2026 redesign: dark plum shell, rose accents, mobile-first social app. */
+:root{--ac-bg:#100d17;--ac-panel:#1b1724;--ac-panel-2:#241d2d;--ac-pink:#f34c9c;--ac-rose:#ff6b9f;--ac-text:#f8f2f7;--ac-muted:#b8aebb;}
+body.is-authenticated{background:var(--ac-bg);color:var(--ac-text)}
+body.is-authenticated .site-header{background:#17121f;border-bottom:1px solid #342638;color:#fff}
+body.is-authenticated .brand img{filter:drop-shadow(0 3px 12px #f34c9c20)}
+body.is-authenticated .main-nav a{color:#eee4ed}
+body.is-authenticated .member-dashboard{background:var(--ac-bg);color:var(--ac-text);grid-template-columns:255px minmax(0,1fr);gap:0;min-height:calc(100svh - 82px)}
+body.is-authenticated .dashboard-sidebar{background:#17131f;border-right:1px solid #342638;padding:30px 18px;gap:9px}
+body.is-authenticated .dashboard-sidebar>.eyebrow{color:#f38ab7;letter-spacing:.16em}
+body.is-authenticated .dashboard-sidebar h2{font-size:24px;color:#fff;letter-spacing:-.7px}
+body.is-authenticated .sidebar-user{border-color:#382c3b;color:#fff}
+body.is-authenticated .sidebar-user small{color:#aa9eae}
+body.is-authenticated .dashboard-tab{display:flex;align-items:center;gap:13px;text-align:left;background:transparent;color:#cbbfce;border:1px solid transparent;border-radius:13px;padding:13px 14px;font-size:14px;transition:.18s}
+body.is-authenticated .dashboard-tab:hover,body.is-authenticated .dashboard-tab.active{background:linear-gradient(100deg,#f34c9c26,#f34c9c0a);border-color:#f34c9c40;color:#ff83b6;box-shadow:none}
+body.is-authenticated .dashboard-logout{margin-top:auto;color:#ff9bbd}
+body.is-authenticated .dashboard-main{max-width:1500px;padding:clamp(22px,3.2vw,48px);color:#f8f2f7}
+body.is-authenticated .dashboard-topline h1{color:#fff;font-size:clamp(27px,3vw,38px)}
+body.is-authenticated .dashboard-topline .eyebrow{color:#f38ab7;letter-spacing:.14em}
+body.is-authenticated .signed-in-pill{background:#193b31;color:#83e3ba}
+body.is-authenticated .welcome-panel{background:radial-gradient(circle at 85% 20%,#9e2d68 0,transparent 33%),linear-gradient(120deg,#29172d,#54213d 70%,#7c2850);border:1px solid #713451;box-shadow:0 18px 48px #0004}
+body.is-authenticated .welcome-panel .eyebrow{color:#ffb3d1}
+body.is-authenticated .dashboard-stats article,body.is-authenticated .dashboard-main .profile-card,body.is-authenticated .match-card,body.is-authenticated .chat-layout,body.is-authenticated .profile-form{background:var(--ac-panel);border-color:#34283a;color:#f8f2f7;box-shadow:0 10px 30px #0002}
+body.is-authenticated .dashboard-stats article>span{color:#ff71aa}
+body.is-authenticated .dashboard-stats small,body.is-authenticated .dashboard-section-heading p,body.is-authenticated .dashboard-note,body.is-authenticated .dashboard-message{color:#b9acbd}
+body.is-authenticated .dashboard-section-heading h2,body.is-authenticated .dashboard-main .profile-name,body.is-authenticated .match-card h3{color:#fff}
+body.is-authenticated .dashboard-main .profile-card{overflow:hidden;border-radius:20px}
+body.is-authenticated .dashboard-main .profile-photo{height:250px;background-color:#302536}
+body.is-authenticated .dashboard-main .profile-info{padding:17px}
+body.is-authenticated .dashboard-main .profile-info p{color:#b9acbd}
+body.is-authenticated .dashboard-main .profile-info .bio{color:#ddd1df}
+body.is-authenticated .dashboard-main .profile-actions .btn-blue,body.is-authenticated .auth-submit{background:linear-gradient(100deg,#ed438f,#ff6da7);border-color:transparent;color:#fff}
+body.is-authenticated .dashboard-main .profile-actions .btn-outline{background:#2a2230;border-color:#574257;color:#f4c5dc}
+body.is-authenticated .empty-state,body.is-authenticated .preview-note{background:#1b1724;border-color:#49384a;color:#c7b9ca}
+body.is-authenticated .conversation-list{background:#191521;border-color:#382c3b}
+body.is-authenticated .conversation-choice{background:transparent;color:#f8f2f7}
+body.is-authenticated .conversation-choice.active,body.is-authenticated .conversation-choice:hover{background:#382338;color:#ff8fba}
+body.is-authenticated .conversation-choice small{color:#b7a9ba}
+body.is-authenticated .conversation-panel{background:#1b1724}
+body.is-authenticated .conversation-heading{border-color:#3b2c40;color:#fff}
+body.is-authenticated .chat-bubble{background:#302737;color:#f5edf5}
+body.is-authenticated .chat-bubble.mine{background:#81365c;color:#fff}
+body.is-authenticated .message-form input,body.is-authenticated .profile-form input,body.is-authenticated .profile-form textarea,body.is-authenticated .profile-form select{background:#211b29;border-color:#49384a;color:#fff}
+body.is-authenticated .field-hint{color:#b8aebb}
+body.is-authenticated .profile-form label{color:#f1e7f0}
+body.is-authenticated .text-link{color:#ff83b6}
+.photo-upload-block{display:flex;align-items:center;gap:18px;padding:15px;border:1px dashed #d8b9c8;border-radius:15px;background:#fff8fb;grid-column:1/-1}
+.photo-preview{width:104px;height:104px;flex:none;border-radius:50%;display:grid;place-items:center;text-align:center;padding:8px;background:linear-gradient(140deg,#f8d7e5,#d8bfd2);color:#75415a;font-size:12px;font-weight:800;background-size:cover;background-position:center;border:3px solid #fff;box-shadow:0 4px 18px #53233a20}
+.photo-preview.has-photo{color:transparent}
+.photo-upload-copy{display:grid;gap:7px;min-width:0}.photo-upload-copy strong{font-size:14px;color:#382633}.photo-upload-copy em{font-style:normal;color:#d92d75;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-left:6px}.photo-upload-copy small{font-size:11px;color:#806d7a;line-height:1.45}.photo-upload-copy input{border:0!important;padding:0!important;background:transparent!important;color:#6c5362!important;font-size:11px!important}
+.photo-extra-label{grid-column:1/-1}.profile-photo-gallery{display:flex;gap:10px;flex-wrap:wrap;grid-column:1/-1}.profile-photo-gallery img{width:76px;height:76px;object-fit:cover;border-radius:13px;border:2px solid #fff;box-shadow:0 3px 12px #0002}
+body.is-authenticated .photo-upload-block{background:#211b29;border-color:#604052}.photo-upload-copy strong{color:#f8edf5}body.is-authenticated .photo-upload-copy small{color:#b8aebb}body.is-authenticated .photo-upload-copy input{color:#f4dce9!important}
+@media(max-width:900px){body.is-authenticated .member-dashboard{grid-template-columns:210px minmax(0,1fr)}}
+@media(max-width:760px){body.is-authenticated .member-dashboard{grid-template-columns:1fr;min-height:calc(100svh - 70px)}body.is-authenticated .dashboard-sidebar{position:sticky;top:70px;z-index:8;display:flex;flex-direction:row;align-items:center;overflow-x:auto;white-space:nowrap;padding:9px 12px;border-right:0;border-bottom:1px solid #342638;background:#17131f}body.is-authenticated .dashboard-sidebar>.eyebrow,body.is-authenticated .dashboard-sidebar>h2,body.is-authenticated .sidebar-user{display:none}body.is-authenticated .dashboard-tab{flex:none;padding:10px 13px;font-size:12px}body.is-authenticated .dashboard-tab span{display:inline}body.is-authenticated .dashboard-logout{margin:0}body.is-authenticated .dashboard-main{padding:20px 14px}body.is-authenticated .dashboard-main .profile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}body.is-authenticated .dashboard-main .profile-photo{height:185px}body.is-authenticated .dashboard-main .profile-info{padding:12px}body.is-authenticated .dashboard-main .profile-name{font-size:14px}body.is-authenticated .dashboard-main .profile-actions{flex-direction:column}body.is-authenticated .dashboard-main .profile-actions .btn{width:100%}.photo-upload-block{align-items:flex-start}.photo-preview{width:82px;height:82px}}
+@media(max-width:420px){body.is-authenticated .dashboard-main .profile-grid{grid-template-columns:1fr 1fr}body.is-authenticated .dashboard-main .profile-photo{height:155px}.photo-upload-block{gap:11px;padding:11px}.photo-preview{width:72px;height:72px}}
+
+/* Static cinematic login background; no rotating slideshow. */
+body:not(.is-authenticated) .hero{background-image:linear-gradient(115deg,rgba(20,7,17,.54),rgba(18,7,18,.45)),url("https://commons.wikimedia.org/wiki/Special:FilePath/Abuja%20City%20Gate%2001.jpg?width=2000");background-position:center;background-size:cover;background-attachment:fixed}
+body:not(.is-authenticated) .hero-overlay{background:linear-gradient(180deg,rgba(34,9,22,.28),rgba(18,7,16,.62))}
+body:not(.is-authenticated) .auth-card{background:rgba(42,31,40,.48);border:1px solid rgba(255,255,255,.23);color:#fff;backdrop-filter:blur(17px);box-shadow:0 28px 90px rgba(0,0,0,.34)}
+body:not(.is-authenticated) .auth-heading{color:#fff}
+body:not(.is-authenticated) .auth-intro,body:not(.is-authenticated) .auth-tagline,body:not(.is-authenticated) .auth-switch,body:not(.is-authenticated) .form-message{color:#f5e9f0}
+body:not(.is-authenticated) .auth-tabs{background:rgba(0,0,0,.22)}
+body:not(.is-authenticated) .auth-tab{color:#f5dce8}
+body:not(.is-authenticated) .auth-tab.active{background:#f34c9c;color:#fff}
+body:not(.is-authenticated) .input-wrap{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#fff}
+body:not(.is-authenticated) .input-wrap input,body:not(.is-authenticated) .input-wrap select{color:#fff}
+body:not(.is-authenticated) .input-wrap input::placeholder{color:#f2e6ed}
+body:not(.is-authenticated) .input-wrap select option{color:#241a24}
+body:not(.is-authenticated) .age-check{color:#fff}
+body:not(.is-authenticated) .text-link,body:not(.is-authenticated) .auth-switch button{color:#ff83b6}
+.sidebar-user{display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;column-gap:11px}
+.sidebar-user .sidebar-avatar{grid-row:span 2;width:42px;height:42px;object-fit:cover;border-radius:50%;background:#342638}
+.sidebar-user small{grid-column:2}
+@media(max-width:760px){body:not(.is-authenticated) .hero{background-attachment:scroll}}

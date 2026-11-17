@@ -51,3 +51,14 @@ Extract the ZIP and upload/commit the contents of the `abuja-connect-work` folde
 - Do not expose Supabase secret/service-role keys in frontend code or GitHub.
 - Supabase publishable keys are public by design, but RLS policies and auth rules must be configured correctly.
 - Test with a new test account and email before inviting real users.
+
+
+## Profile photo setup (existing Supabase project)
+
+Before deploying this redesign, open the existing Supabase project's SQL Editor and run `supabase/add-profile-photos.sql`. This is an additive migration: it adds `additional_photo_urls` and configures the `profile-photos` Storage bucket and per-user upload policies. It does not drop or replace existing tables or member records.
+
+Members must upload one main profile photo during first profile setup. Up to three optional additional photos are supported. Images are limited to JPG, PNG or WebP and 8 MB each.
+
+## Payment status
+
+The existing browser app does not yet include a secure Paystack verification endpoint. Do not activate paid subscriptions from browser-side code or put a Paystack secret key in `public/config.js`. A server-side checkout initialization, webhook signature verification and transaction verification flow still needs to be implemented and configured before accepting payments. The agreed plan is ₦1,000 monthly.

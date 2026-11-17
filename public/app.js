@@ -1,24 +1,7 @@
 (() => {
 'use strict';
 
-// Rotate real Abuja landmark photographs every 3 seconds. Device local time controls day/night treatment.
-(function initAbujaSlideshow(){
-  const hero=document.querySelector('.hero');
-  const host=document.getElementById('city-slideshow');
-  if(!hero||!host)return;
-  const landmarks=[
-    {name:'Abuja City Gate',url:'https://commons.wikimedia.org/wiki/Special:FilePath/Abuja%20City%20Gate%2001.jpg?width=2000'},
-    {name:'National Mosque, Abuja',url:'https://commons.wikimedia.org/wiki/Special:FilePath/The%20National%20Mosque%20In%20Abuja%20Nigeria.jpg?width=2000'},
-    {name:'Aso Rock, Abuja',url:'https://commons.wikimedia.org/wiki/Special:FilePath/Aso%20Rock%20Nigeria.jpg?width=2000'},
-    {name:'Abuja city landmark',url:'https://commons.wikimedia.org/wiki/Special:FilePath/Abuja%20City%20Gate.jpeg?width=2000'},
-    {name:'National Mosque, Abuja',url:'https://commons.wikimedia.org/wiki/Special:FilePath/Nigeria%20National%20Mosque%20-%20Abuja.jpg?width=2000'}
-  ];
-  const slides=landmarks.map((place,index)=>{const img=document.createElement('img');img.className='city-slide'+(index===0?' active':'');img.alt='';img.setAttribute('aria-hidden','true');img.loading=index===0?'eager':'lazy';img.src=place.url;img.onerror=()=>{img.style.display='none'};host.appendChild(img);return img;});
-  let current=0;
-  function updateTimeTheme(){const hour=new Date().getHours();const night=hour<6||hour>=18;hero.dataset.time=night?'night':'day';hero.dataset.theme=night?'night':'day';}
-  updateTimeTheme();setInterval(updateTimeTheme,60000);
-  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){setInterval(()=>{slides[current].classList.remove('active');current=(current+1)%slides.length;slides[current].classList.add('active');},3000);}
-})();
+// The login background is intentionally static: the supplied reference uses a calm, cinematic image.
 
 const planPrices = {
   regular: [{duration:'1 month',price:'₦1,000'},{duration:'3 months',price:'₦2,700'},{duration:'6 months',price:'₦5,000'},{duration:'1 year',price:'₦9,000'}],
@@ -35,59 +18,20 @@ function setAuthMode(mode){authMode=mode==='signup'?'signup':'login';document.qu
 function setMessage(text,isError=false){$('#auth-message').textContent=text;$('#auth-message').style.color=isError?'#b4233d':'#16814a';}
 
 const forgotButton=$('#forgot-password');
-const resetPanel=$('#password-reset-panel');
-const resetForm=$('#password-reset-form');
-function showPasswordReset(){
-  if(!resetPanel)return;
-  $('#auth-form').hidden=true;
-  $('#auth-switch').hidden=true;
-  $('#signup-fields').hidden=true;
-  resetPanel.hidden=false;
-  $('#reset-new-password').focus();
-  setMessage('Choose a new password for your Abuja Connect account.');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function showLoginAfterReset(message){
-  if(resetPanel)resetPanel.hidden=true;
-  $('#auth-form').hidden=false;
-  $('#auth-switch').hidden=false;
-  setAuthMode('login');
-  $('#auth-password').value='';
-  setMessage(message);
-}
 forgotButton?.addEventListener('click',async()=>{
   const email=$('#auth-email').value.trim();
-  if(!email){setMessage('Enter your registered email address first, then choose Forgot password.',true);$('#auth-email').focus();return;}
+  if(!email){setMessage('Enter your email address first, then choose Forgot password.',true);$('#auth-email').focus();return;}
   if(!supabase){setMessage('Password reset is unavailable until Supabase is configured.',true);return;}
   forgotButton.disabled=true;
   try{
     const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
     if(error)throw error;
-    setMessage('If an account exists for that email, we have sent a password-reset link. Check your inbox and Spam folder.');
+    setMessage('If an account exists for that email, a password-reset link will be sent.');
   }catch(err){setMessage(err.message||'Could not request a password reset.',true);}
   finally{forgotButton.disabled=false;}
 });
-resetForm?.addEventListener('submit',async e=>{
-  e.preventDefault();
-  if(!supabase){setMessage('Password reset is unavailable until Supabase is configured.',true);return;}
-  const password=$('#reset-new-password').value;
-  const confirm=$('#reset-confirm-password').value;
-  if(password.length<8){setMessage('Your new password must be at least 8 characters.',true);return;}
-  if(password!==confirm){setMessage('The passwords do not match. Please try again.',true);return;}
-  const submit=resetForm.querySelector('button[type="submit"]');
-  submit.disabled=true;
-  try{
-    const {error}=await supabase.auth.updateUser({password});
-    if(error)throw error;
-    resetForm.reset();
-    showLoginAfterReset('Your password has been changed successfully. Please log in with your new password.');
-    await supabase.auth.signOut();
-  }catch(err){setMessage(err.message||'We could not update your password. Request a new reset link and try again.',true);}
-  finally{submit.disabled=false;}
-});
-$('#cancel-password-reset')?.addEventListener('click',()=>showLoginAfterReset('Password reset cancelled. You can log in with your current password.'));
 // Google OAuth removed: Abuja Connect uses email and password authentication only.
-let activeDashboardView='dashboard', selectedMatch=null, memberProfile=null;
+let activeDashboardView='discover', selectedMatch=null, memberProfile=null;
 function renderAuthState(){
   const authenticated=!!currentUser;
   document.body.classList.toggle('is-authenticated',authenticated);
@@ -135,20 +79,20 @@ async function enterDashboard(){
   $('#member-dashboard').hidden=false;
   renderAuthState();
   $('#member-dashboard').hidden=false;
-  activeDashboardView='dashboard';
-  showDashboardView('dashboard');
-  await loadProfiles('#dashboard-profiles');
+  activeDashboardView='discover';
+  showDashboardView('discover');
+  await loadProfiles('#discover-profiles');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 async function routeAuthenticatedUser(isNewSignup=false){
   if(!currentUser)return;
-  const {data,error}=await supabase.from('profiles').select('id,display_name,gender,city,bio,interests,account_type').eq('id',currentUser.id).maybeSingle();
+  const {data,error}=await supabase.from('profiles').select('id,display_name,gender,city,bio,interests,account_type,avatar_url,additional_photo_urls').eq('id',currentUser.id).maybeSingle();
   if(error){setMessage(error.message,true);return;}
   memberProfile=data||null;
   if(isNewSignup||!data){showOnboarding();return;}
   const name=data.display_name||currentUser.user_metadata?.display_name||'member';
   $('#member-name').textContent=name;$('#sidebar-member-name').textContent=name;$('#member-email').textContent=currentUser.email||'';
-  $('#profile-display-name').value=data.display_name||'';$('#profile-gender').value=data.gender||'';$('#profile-city').value=data.city||'Abuja';$('#profile-bio').value=data.bio||'';$('#profile-interests').value=(data.interests||[]).join(', ');
+  $('#profile-display-name').value=data.display_name||'';$('#profile-gender').value=data.gender||'';$('#profile-city').value=data.city||'Abuja';$('#profile-bio').value=data.bio||'';$('#profile-interests').value=(data.interests||[]).join(', ');if(data.avatar_url)$('#sidebar-avatar').src=safeUrl(data.avatar_url);
   await enterDashboard();
 }
 async function refreshSession(){
@@ -220,11 +164,37 @@ $('#auth-form').addEventListener('submit',async e=>{
     submit.textContent=creating?'Create account':'Login';
   }
 });
+async function uploadProfileImages(mainFile, extraFiles, existingAvatar=null){
+  if(!supabase||!currentUser)throw new Error('Please sign in before uploading profile photos.');
+  const bucket='profile-photos';
+  const uploadOne=async(file,label)=>{
+    if(!file)return null;
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Please use JPG, PNG or WebP photos.');
+    if(file.size>8*1024*1024)throw new Error('Each photo must be 8 MB or smaller.');
+    const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+    const path=`${currentUser.id}/${label}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const {error}=await supabase.storage.from(bucket).upload(path,file,{upsert:false,contentType:file.type});
+    if(error)throw error;
+    const {data}=supabase.storage.from(bucket).getPublicUrl(path);
+    return data.publicUrl;
+  };
+  const avatar=mainFile?await uploadOne(mainFile,'main'):existingAvatar;
+  const extras=[];
+  for(let i=0;i<Math.min(extraFiles.length,3);i++)extras.push(await uploadOne(extraFiles[i],`extra-${i+1}`));
+  return {avatar_url:avatar,additional_photo_urls:extras};
+}
+function showLocalPreview(input, target){
+  const file=input?.files?.[0];if(!file||!target)return;
+  if(!file.type.startsWith('image/'))return;
+  const url=URL.createObjectURL(file);target.style.backgroundImage=`url("${url}")`;target.classList.add('has-photo');target.textContent='';
+}
+$('#onboard-avatar')?.addEventListener('change',()=>showLocalPreview($('#onboard-avatar'),$('#onboard-avatar-preview')));
+$('#profile-avatar')?.addEventListener('change',()=>showLocalPreview($('#profile-avatar'),$('#profile-avatar-preview')));
 $('#onboarding-form')?.addEventListener('submit',async e=>{
   e.preventDefault();if(!supabase||!currentUser)return;
-  const button=$('#onboarding-submit');button.disabled=true;$('#onboarding-message').textContent='Saving your profile…';
+  const button=$('#onboarding-submit');const mainPhoto=$('#onboard-avatar')?.files?.[0];const extraPhotos=Array.from($('#onboard-extra-photos')?.files||[]);if(!mainPhoto){$('#onboarding-message').textContent='Please add your main profile photo to continue.';return;}if(extraPhotos.length>3){$('#onboarding-message').textContent='You can add up to 3 additional photos.';return;}button.disabled=true;$('#onboarding-message').textContent='Uploading photos and saving your profile…';
   const values={id:currentUser.id,display_name:$('#onboard-display-name').value.trim(),gender:$('#onboard-gender').value,city:$('#onboard-city').value.trim(),bio:$('#onboard-bio').value.trim(),interests:$('#onboard-interests').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20),account_type:currentUser.user_metadata?.account_type||'regular',age_confirmed:true,updated_at:new Date().toISOString()};
-  try{const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;memberProfile=values;$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;await enterDashboard();}
+  try{const photos=await uploadProfileImages(mainPhoto,extraPhotos);Object.assign(values,photos);const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;memberProfile=values;$('#sidebar-avatar').src=safeUrl(values.avatar_url);$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;await enterDashboard();}
   catch(err){$('#onboarding-message').textContent=err.message||'Could not save your profile. Please try again.';}
   finally{button.disabled=false;}
 });
@@ -240,8 +210,8 @@ async function loadProfiles(target='#discover-profiles'){
  container.innerHTML=data.map(p=>`<article class="profile-card"><div class="profile-photo" style="background-image:${p.avatar_url?`url('${safeUrl(p.avatar_url)}')`:'linear-gradient(140deg,#d9e7fa,#7d9bc7)'}"><span class="sample-tag">${escapeHtml(p.account_type==='escort'?'Escort listing':'Member profile')}</span></div><div class="profile-info"><div class="profile-name">${escapeHtml(p.display_name||'Abuja Connect member')}</div><p>${escapeHtml(p.city||'Abuja')}</p><p class="bio">${escapeHtml(p.bio||'Open to making new connections.')}</p><div class="interest-tags">${(p.interests||[]).slice(0,3).map(t=>`<span>${escapeHtml(t)}</span>`).join('')}</div><div class="profile-actions"><button class="btn btn-blue" data-like="${p.id}">♥ Like</button><button class="btn btn-outline" data-pass="${p.id}">Pass</button></div></div></article>`).join('');
  container.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>likeProfile(b.dataset.like,b));container.querySelectorAll('[data-pass]').forEach(b=>b.onclick=()=>b.closest('.profile-card').remove());
 }
-async function loadMyProfile(){if(!supabase||!currentUser)return;const {data,error}=await supabase.from('profiles').select('display_name,gender,city,bio,interests,account_type').eq('id',currentUser.id).maybeSingle();if(error){$('#profile-message').textContent=error.message;return;}memberProfile=data||{};$('#profile-display-name').value=memberProfile.display_name||currentUser.user_metadata?.display_name||'';$('#profile-gender').value=memberProfile.gender||currentUser.user_metadata?.gender||'';$('#profile-city').value=memberProfile.city||'Abuja';$('#profile-bio').value=memberProfile.bio||'';$('#profile-interests').value=(memberProfile.interests||[]).join(', ');}
-$('#profile-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!supabase||!currentUser)return;const button=e.submitter;button.disabled=true;$('#profile-message').textContent='Saving…';const values={id:currentUser.id,display_name:$('#profile-display-name').value.trim(),gender:$('#profile-gender').value||null,city:$('#profile-city').value.trim(),bio:$('#profile-bio').value.trim(),interests:$('#profile-interests').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20),account_type:memberProfile?.account_type||currentUser.user_metadata?.account_type||'regular',age_confirmed:true,updated_at:new Date().toISOString()};try{const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;$('#profile-message').textContent='Profile saved successfully.';$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;}catch(err){$('#profile-message').textContent=err.message||'Could not save profile.';}finally{button.disabled=false;}});
+async function loadMyProfile(){if(!supabase||!currentUser)return;const {data,error}=await supabase.from('profiles').select('display_name,gender,city,bio,interests,account_type,avatar_url,additional_photo_urls').eq('id',currentUser.id).maybeSingle();if(error){$('#profile-message').textContent=error.message;return;}memberProfile=data||{};$('#profile-display-name').value=memberProfile.display_name||currentUser.user_metadata?.display_name||'';$('#profile-gender').value=memberProfile.gender||currentUser.user_metadata?.gender||'';$('#profile-city').value=memberProfile.city||'Abuja';$('#profile-bio').value=memberProfile.bio||'';$('#profile-interests').value=(memberProfile.interests||[]).join(', ');if(memberProfile.avatar_url)$('#sidebar-avatar').src=safeUrl(memberProfile.avatar_url);const preview=$('#profile-avatar-preview');if(preview&&memberProfile.avatar_url){preview.style.backgroundImage=`url("${safeUrl(memberProfile.avatar_url)}")`;preview.classList.add('has-photo');preview.textContent='';}const gallery=$('#profile-photo-gallery');if(gallery)gallery.innerHTML=(memberProfile.additional_photo_urls||[]).map(url=>`<img src="${safeUrl(url)}" alt="Additional profile photo" loading="lazy">`).join('');}
+$('#profile-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!supabase||!currentUser)return;const button=e.submitter;button.disabled=true;$('#profile-message').textContent='Saving…';const values={id:currentUser.id,display_name:$('#profile-display-name').value.trim(),gender:$('#profile-gender').value||null,city:$('#profile-city').value.trim(),bio:$('#profile-bio').value.trim(),interests:$('#profile-interests').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20),account_type:memberProfile?.account_type||currentUser.user_metadata?.account_type||'regular',age_confirmed:true,updated_at:new Date().toISOString()};const mainPhoto=$('#profile-avatar')?.files?.[0];const extraPhotos=Array.from($('#profile-extra-photos')?.files||[]);if(extraPhotos.length>3){$('#profile-message').textContent='You can add up to 3 additional photos.';button.disabled=false;return;}try{const photos=await uploadProfileImages(mainPhoto,extraPhotos,memberProfile?.avatar_url||null);Object.assign(values,photos);if(!values.avatar_url)throw new Error('Please upload your main profile photo.');const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;memberProfile=values;$('#sidebar-avatar').src=safeUrl(values.avatar_url);$('#profile-message').textContent='Profile saved successfully.';$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;}catch(err){$('#profile-message').textContent=err.message||'Could not save profile.';}finally{button.disabled=false;}});
 async function loadMatches(){if(!supabase||!currentUser)return;const list=$('#matches-list');list.innerHTML='<p class="empty-state">Loading matches…</p>';const {data,error}=await supabase.from('matches').select('id,user_one,user_two,created_at').or(`user_one.eq.${currentUser.id},user_two.eq.${currentUser.id}`).order('created_at',{ascending:false});if(error){list.innerHTML=`<p class="empty-state">Could not load matches: ${escapeHtml(error.message)}</p>`;return;}if(!data?.length){list.innerHTML='<p class="empty-state">No matches yet. Visit Discover and like profiles to get started.</p>';$('#stat-matches').textContent='0';return;}const ids=[...new Set(data.map(m=>m.user_one===currentUser.id?m.user_two:m.user_one))];const {data:profiles}=await supabase.from('profiles').select('id,display_name,city').in('id',ids);const byId=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));list.innerHTML=data.map(m=>{const id=m.user_one===currentUser.id?m.user_two:m.user_one,p=byId[id]||{};return `<article class="match-card"><div><h3>${escapeHtml(p.display_name||'Abuja Connect member')}</h3><p>${escapeHtml(p.city||'Abuja')} · Matched ${new Date(m.created_at).toLocaleDateString()}</p></div><button class="btn btn-blue" data-chat-match="${m.id}" data-other="${id}" data-name="${escapeHtml(p.display_name||'Member')}">Message</button></article>`}).join('');list.querySelectorAll('[data-chat-match]').forEach(b=>b.onclick=()=>{selectedMatch={id:b.dataset.chatMatch,other:b.dataset.other,name:b.dataset.name};showDashboardView('messages');});$('#stat-matches').textContent=String(data.length);}
 async function loadConversations(){if(!supabase||!currentUser)return;const list=$('#conversation-list');list.innerHTML='<p class="empty-state">Loading matches…</p>';const {data,error}=await supabase.from('matches').select('id,user_one,user_two,created_at').or(`user_one.eq.${currentUser.id},user_two.eq.${currentUser.id}`).order('created_at',{ascending:false});if(error){list.innerHTML=`<p class="empty-state">Could not load conversations: ${escapeHtml(error.message)}</p>`;return;}if(!data?.length){list.innerHTML='<p class="empty-state">You need a mutual match before starting a conversation.</p>';$('#conversation-empty').hidden=false;$('#conversation-content').hidden=true;return;}const ids=[...new Set(data.map(m=>m.user_one===currentUser.id?m.user_two:m.user_one))];const {data:profiles}=await supabase.from('profiles').select('id,display_name').in('id',ids);const byId=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));list.innerHTML=data.map(m=>{const other=m.user_one===currentUser.id?m.user_two:m.user_one,p=byId[other]||{};return `<button class="conversation-choice ${selectedMatch?.id===m.id?'active':''}" data-open-match="${m.id}" data-other="${other}" data-name="${escapeHtml(p.display_name||'Member')}">${escapeHtml(p.display_name||'Member')}<small>Open conversation</small></button>`}).join('');list.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>{selectedMatch={id:b.dataset.openMatch,other:b.dataset.other,name:b.dataset.name};loadMessages();});if(selectedMatch&&data.some(m=>m.id===selectedMatch.id)){loadMessages();}else{selectedMatch=null;$('#conversation-empty').hidden=false;$('#conversation-content').hidden=true;}const {count}=await supabase.from('messages').select('id',{count:'exact',head:true}).or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`);$('#stat-messages').textContent=String(count||0);}
 async function loadMessages(){if(!supabase||!currentUser||!selectedMatch)return;$('#conversation-empty').hidden=true;$('#conversation-content').hidden=false;$('#conversation-heading').textContent=selectedMatch.name;const box=$('#message-list');box.innerHTML='<p class="empty-state">Loading messages…</p>';const {data,error}=await supabase.from('messages').select('id,sender_id,recipient_id,body,created_at').eq('match_id',selectedMatch.id).order('created_at',{ascending:true}).limit(100);if(error){box.innerHTML=`<p class="empty-state">Could not load messages: ${escapeHtml(error.message)}. Messaging may require an active subscription.</p>`;return;}if(!data?.length){box.innerHTML='<p class="empty-state">No messages yet. Say hello when your account has messaging access.</p>';return;}box.innerHTML=data.map(m=>`<div class="chat-bubble ${m.sender_id===currentUser.id?'mine':''}">${escapeHtml(m.body)}<small>${new Date(m.created_at).toLocaleString()}</small></div>`).join('');box.scrollTop=box.scrollHeight;}
@@ -250,7 +220,7 @@ $('#refresh-discover')?.addEventListener('click',()=>loadProfiles('#discover-pro
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 async function likeProfile(id,button){if(!supabase||!currentUser){notice('Sign in required','Please sign in to express interest in a profile.');return;}button.disabled=true;try{const {error}=await supabase.from('likes').upsert({from_user:currentUser.id,to_user:id},{onConflict:'from_user,to_user'});if(error)throw error;button.textContent='♥ Liked';button.classList.remove('btn-blue');button.classList.add('btn-outline');const {count}=await supabase.from('likes').select('id',{count:'exact',head:true}).eq('from_user',currentUser.id);$('#stat-likes').textContent=String(count||0);notice('Interest sent','Your interest was saved. A match is created only if the other person also likes your profile.');}catch(e){notice('Could not like profile',e.message||'Please try again.');button.disabled=false;}}
-$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((event,session)=>{currentUser=session?.user||null;if(event==='PASSWORD_RECOVERY'){renderAuthState();showPasswordReset();return;}if(!currentUser){$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');}});refreshSession();
+$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;if(!currentUser){$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');}});refreshSession();
 
 
 })();
