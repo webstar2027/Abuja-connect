@@ -13,7 +13,7 @@ const modal=$('#notice-modal');
 function notice(title,body){$('#notice-title').textContent=title;$('#notice-body').textContent=body;if(modal?.showModal)modal.showModal();else alert(`${title}\n\n${body}`)}
 function configured(){return window.ABUJA_CONFIG && window.ABUJA_CONFIG.supabaseUrl.startsWith('https://') && !window.ABUJA_CONFIG.supabaseUrl.includes('PASTE_') && window.ABUJA_CONFIG.supabasePublishableKey && !window.ABUJA_CONFIG.supabasePublishableKey.includes('PASTE_') && window.supabase;}
 if(configured()) supabase=window.supabase.createClient(window.ABUJA_CONFIG.supabaseUrl,window.ABUJA_CONFIG.supabasePublishableKey);
-function renderPrices(){const grid=$('#prices');if(!grid)return;grid.innerHTML=planPrices[selectedType].map((p,i)=>`<article class="price-card ${i===2?'featured':''}"><b>${p.duration}</b><div class="price">${p.price}</div><small>${i===0?'Flexible duration':'Subscription plan'}</small><button class="btn btn-blue" data-plan="${p.duration}">Choose plan</button></article>`).join('');grid.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>notice('Subscription selected',`${selectedType==='regular'?'Regular account':'Escort listing'} · ${b.dataset.plan}. Payment activation requires the secure Paystack checkout and server verification to be configured.`));}
+function renderPrices(){const grid=$('#prices');if(!grid)return;grid.innerHTML=planPrices[selectedType].map((p,i)=>`<article class="price-card ${i===2?'featured':''}"><b>${p.duration}</b><div class="price">${p.price}</div><small>${i===0?'Flexible duration':'Subscription plan'}</small><button class="btn btn-blue" data-plan="${p.duration}">Choose plan</button></article>`).join('');grid.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>startCheckout(selectedType,b.dataset.plan,b));}
 function setAuthMode(mode){authMode=mode==='signup'?'signup':'login';document.querySelectorAll('[data-auth-tab]').forEach(b=>{let active=b.dataset.authTab===authMode;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));b.onclick=()=>setAuthMode(b.dataset.authTab)});$('#signup-fields').hidden=authMode!=='signup';$('#display-name').required=authMode==='signup';$('#signup-gender').required=authMode==='signup';$('#age-check').required=authMode==='signup';$('#auth-password').minLength=authMode==='signup'?8:0;$('#auth-submit').textContent=authMode==='signup'?'Create account':'Login';$('#auth-password').autocomplete=authMode==='signup'?'new-password':'current-password';$('#auth-switch').innerHTML=authMode==='signup'?'Already have an account? <button type="button" data-auth-tab="login">Login</button>':'Don\'t have an account? <button type="button" data-auth-tab="signup">Sign Up</button>';document.querySelectorAll('[data-auth-tab]').forEach(b=>b.onclick=()=>setAuthMode(b.dataset.authTab));}
 function setMessage(text,isError=false){$('#auth-message').textContent=text;$('#auth-message').style.color=isError?'#b4233d':'#16814a';}
 
@@ -63,8 +63,9 @@ function showDashboardView(view){
 }
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showDashboardView(b.dataset.view)));
 $('#sign-out')?.addEventListener('click',doSignOut);$('#header-logout')?.addEventListener('click',doSignOut);
-async function doSignOut(){if(!supabase)return;const {error}=await supabase.auth.signOut();if(error){$('#member-message').textContent=error.message;return;}currentUser=null;selectedMatch=null;memberProfile=null;$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');setAuthMode('login');setMessage('You have logged out successfully.');window.scrollTo({top:0,behavior:'smooth'});}
+async function doSignOut(){if(!supabase)return;const {error}=await supabase.auth.signOut();if(error){$('#member-message').textContent=error.message;return;}currentUser=null;selectedMatch=null;memberProfile=null;$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#subscription-gate').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');setAuthMode('login');setMessage('You have logged out successfully.');window.scrollTo({top:0,behavior:'smooth'});}
 function showOnboarding(){
+  $('#subscription-gate').hidden=true;
   renderAuthState();
   $('#profile-onboarding').hidden=false;
   document.querySelector('.site-header').hidden=true;
@@ -74,6 +75,7 @@ function showOnboarding(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 async function enterDashboard(){
+  $('#subscription-gate').hidden=true;
   document.querySelector('.site-header').hidden=false;
   $('#profile-onboarding').hidden=true;
   $('#member-dashboard').hidden=false;
@@ -84,12 +86,45 @@ async function enterDashboard(){
   await loadProfiles('#discover-profiles');
   window.scrollTo({top:0,behavior:'smooth'});
 }
+const planCodes={'1 month':'1_month','3 months':'3_months','6 months':'6_months','1 year':'1_year'};
+async function apiRequest(path,body=null){
+  const {data}=await supabase.auth.getSession();const token=data?.session?.access_token;if(!token)throw new Error('Please log in again.');
+  const response=await fetch(path,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const payload=await response.json().catch(()=>({error:'Unexpected server response'}));if(!response.ok)throw new Error(payload.error||'Request failed');return payload;
+}
+async function subscriptionStatus(){try{return await apiRequest('/api/payments/status');}catch{return {active:false};}}
+function showSubscriptionGate(){
+  $('#subscription-gate').hidden=false;$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;
+  document.querySelector('.site-header').hidden=false;renderAuthState();$('#subscription-gate').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function startCheckout(accountType,duration,button){
+  if(!currentUser||!supabase){notice('Sign in first','Create your Abuja Connect account or log in, then choose a subscription plan.');$('#auth-card').closest('.hero').hidden=false;$('#auth-card').scrollIntoView({behavior:'smooth',block:'center'});setAuthMode('login');return;}
+  const code=planCodes[duration];if(!code)return;
+  if(button){button.disabled=true;button.textContent='Preparing checkout…';}
+  try{const init=await apiRequest('/api/payments/initialize',{accountType,planCode:code});if(!init.authorization_url)throw new Error('Checkout link was not returned.');window.location.assign(init.authorization_url);}
+  catch(err){notice('Could not start payment',err.message||'Please try again.');}
+  finally{if(button){button.disabled=false;button.textContent='Choose plan';}}
+}
+async function handlePaymentReturn(){
+  const url=new URL(window.location.href);if(url.pathname!=='/payment-return')return;
+  const reference=url.searchParams.get('reference')||url.searchParams.get('trxref');
+  if(!reference){notice('Payment check','No payment reference was returned. Please select a plan and try again.');return;}
+  if(!currentUser){setMessage('Payment completed or attempted. Log in with the account used to pay to verify your subscription.');return;}
+  try{notice('Checking payment','Please wait while Abuja Connect verifies your payment securely.');const result=await apiRequest('/api/payments/verify',{reference});modal?.close?.();if(result.verified){notice('Subscription activated','Your payment was verified. Your subscription is now active.');const {data}=await supabase.from('profiles').select('id,display_name,gender,city,bio,interests,account_type,avatar_url,additional_photo_urls').eq('id',currentUser.id).maybeSingle();memberProfile=data||null;if(!data||!data.avatar_url){showOnboarding();}else await enterDashboard();}else notice('Payment not verified',result.error||'Payment is still pending.');}
+  catch(err){modal?.close?.();notice('Payment verification failed',err.message||'If you completed payment, try logging in again shortly.');}
+  finally{url.searchParams.delete('reference');url.searchParams.delete('trxref');history.replaceState({},'',url.pathname+url.search+url.hash);}
+}
 async function routeAuthenticatedUser(isNewSignup=false){
   if(!currentUser)return;
   const {data,error}=await supabase.from('profiles').select('id,display_name,gender,city,bio,interests,account_type,avatar_url,additional_photo_urls').eq('id',currentUser.id).maybeSingle();
   if(error){setMessage(error.message,true);return;}
   memberProfile=data||null;
-  if(isNewSignup||!data){showOnboarding();return;}
+  selectedType=(data?.account_type||currentUser.user_metadata?.account_type||'regular');
+  document.querySelectorAll('[data-type]').forEach(x=>x.classList.toggle('active',x.dataset.type===selectedType));
+  if(isNewSignup||!data){renderPrices();showOnboarding();return;}
+  renderPrices();
+  const status=await subscriptionStatus();
+  if(!status.active){showSubscriptionGate();return;}
   const name=data.display_name||currentUser.user_metadata?.display_name||'member';
   $('#member-name').textContent=name;$('#sidebar-member-name').textContent=name;$('#member-email').textContent=currentUser.email||'';
   $('#profile-display-name').value=data.display_name||'';$('#profile-gender').value=data.gender||'';$('#profile-city').value=data.city||'Abuja';$('#profile-bio').value=data.bio||'';$('#profile-interests').value=(data.interests||[]).join(', ');if(data.avatar_url)$('#sidebar-avatar').src=safeUrl(data.avatar_url);
@@ -156,7 +191,7 @@ $('#auth-form').addEventListener('submit',async e=>{
     }
     currentUser=result.data.user;
     if(!currentUser)throw new Error('Authentication did not return a user. Please try again.');
-    await routeAuthenticatedUser(creating);
+    await routeAuthenticatedUser(creating);if(!creating)await handlePaymentReturn();
   }catch(err){
     setMessage(err?.message||'Could not complete your request. Please try again.',true);
   }finally{
@@ -194,7 +229,7 @@ $('#onboarding-form')?.addEventListener('submit',async e=>{
   e.preventDefault();if(!supabase||!currentUser)return;
   const button=$('#onboarding-submit');const mainPhoto=$('#onboard-avatar')?.files?.[0];const extraPhotos=Array.from($('#onboard-extra-photos')?.files||[]);if(!mainPhoto){$('#onboarding-message').textContent='Please add your main profile photo to continue.';return;}if(extraPhotos.length>3){$('#onboarding-message').textContent='You can add up to 3 additional photos.';return;}button.disabled=true;$('#onboarding-message').textContent='Uploading photos and saving your profile…';
   const values={id:currentUser.id,display_name:$('#onboard-display-name').value.trim(),gender:$('#onboard-gender').value,city:$('#onboard-city').value.trim(),bio:$('#onboard-bio').value.trim(),interests:$('#onboard-interests').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20),account_type:currentUser.user_metadata?.account_type||'regular',age_confirmed:true,updated_at:new Date().toISOString()};
-  try{const photos=await uploadProfileImages(mainPhoto,extraPhotos);Object.assign(values,photos);const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;memberProfile=values;$('#sidebar-avatar').src=safeUrl(values.avatar_url);$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;await enterDashboard();}
+  try{const photos=await uploadProfileImages(mainPhoto,extraPhotos);Object.assign(values,photos);const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;memberProfile=values;$('#sidebar-avatar').src=safeUrl(values.avatar_url);$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;const status=await subscriptionStatus();if(status.active)await enterDashboard();else showSubscriptionGate();}
   catch(err){$('#onboarding-message').textContent=err.message||'Could not save your profile. Please try again.';}
   finally{button.disabled=false;}
 });
@@ -215,12 +250,13 @@ $('#profile-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!s
 async function loadMatches(){if(!supabase||!currentUser)return;const list=$('#matches-list');list.innerHTML='<p class="empty-state">Loading matches…</p>';const {data,error}=await supabase.from('matches').select('id,user_one,user_two,created_at').or(`user_one.eq.${currentUser.id},user_two.eq.${currentUser.id}`).order('created_at',{ascending:false});if(error){list.innerHTML=`<p class="empty-state">Could not load matches: ${escapeHtml(error.message)}</p>`;return;}if(!data?.length){list.innerHTML='<p class="empty-state">No matches yet. Visit Discover and like profiles to get started.</p>';$('#stat-matches').textContent='0';return;}const ids=[...new Set(data.map(m=>m.user_one===currentUser.id?m.user_two:m.user_one))];const {data:profiles}=await supabase.from('profiles').select('id,display_name,city').in('id',ids);const byId=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));list.innerHTML=data.map(m=>{const id=m.user_one===currentUser.id?m.user_two:m.user_one,p=byId[id]||{};return `<article class="match-card"><div><h3>${escapeHtml(p.display_name||'Abuja Connect member')}</h3><p>${escapeHtml(p.city||'Abuja')} · Matched ${new Date(m.created_at).toLocaleDateString()}</p></div><button class="btn btn-blue" data-chat-match="${m.id}" data-other="${id}" data-name="${escapeHtml(p.display_name||'Member')}">Message</button></article>`}).join('');list.querySelectorAll('[data-chat-match]').forEach(b=>b.onclick=()=>{selectedMatch={id:b.dataset.chatMatch,other:b.dataset.other,name:b.dataset.name};showDashboardView('messages');});$('#stat-matches').textContent=String(data.length);}
 async function loadConversations(){if(!supabase||!currentUser)return;const list=$('#conversation-list');list.innerHTML='<p class="empty-state">Loading matches…</p>';const {data,error}=await supabase.from('matches').select('id,user_one,user_two,created_at').or(`user_one.eq.${currentUser.id},user_two.eq.${currentUser.id}`).order('created_at',{ascending:false});if(error){list.innerHTML=`<p class="empty-state">Could not load conversations: ${escapeHtml(error.message)}</p>`;return;}if(!data?.length){list.innerHTML='<p class="empty-state">You need a mutual match before starting a conversation.</p>';$('#conversation-empty').hidden=false;$('#conversation-content').hidden=true;return;}const ids=[...new Set(data.map(m=>m.user_one===currentUser.id?m.user_two:m.user_one))];const {data:profiles}=await supabase.from('profiles').select('id,display_name').in('id',ids);const byId=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));list.innerHTML=data.map(m=>{const other=m.user_one===currentUser.id?m.user_two:m.user_one,p=byId[other]||{};return `<button class="conversation-choice ${selectedMatch?.id===m.id?'active':''}" data-open-match="${m.id}" data-other="${other}" data-name="${escapeHtml(p.display_name||'Member')}">${escapeHtml(p.display_name||'Member')}<small>Open conversation</small></button>`}).join('');list.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>{selectedMatch={id:b.dataset.openMatch,other:b.dataset.other,name:b.dataset.name};loadMessages();});if(selectedMatch&&data.some(m=>m.id===selectedMatch.id)){loadMessages();}else{selectedMatch=null;$('#conversation-empty').hidden=false;$('#conversation-content').hidden=true;}const {count}=await supabase.from('messages').select('id',{count:'exact',head:true}).or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`);$('#stat-messages').textContent=String(count||0);}
 async function loadMessages(){if(!supabase||!currentUser||!selectedMatch)return;$('#conversation-empty').hidden=true;$('#conversation-content').hidden=false;$('#conversation-heading').textContent=selectedMatch.name;const box=$('#message-list');box.innerHTML='<p class="empty-state">Loading messages…</p>';const {data,error}=await supabase.from('messages').select('id,sender_id,recipient_id,body,created_at').eq('match_id',selectedMatch.id).order('created_at',{ascending:true}).limit(100);if(error){box.innerHTML=`<p class="empty-state">Could not load messages: ${escapeHtml(error.message)}. Messaging may require an active subscription.</p>`;return;}if(!data?.length){box.innerHTML='<p class="empty-state">No messages yet. Say hello when your account has messaging access.</p>';return;}box.innerHTML=data.map(m=>`<div class="chat-bubble ${m.sender_id===currentUser.id?'mine':''}">${escapeHtml(m.body)}<small>${new Date(m.created_at).toLocaleString()}</small></div>`).join('');box.scrollTop=box.scrollHeight;}
-$('#message-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!supabase||!currentUser||!selectedMatch)return;const input=$('#message-input'),body=input.value.trim();if(!body)return;const button=e.submitter;button.disabled=true;try{const {error}=await supabase.from('messages').insert({match_id:selectedMatch.id,sender_id:currentUser.id,recipient_id:selectedMatch.other,body});if(error)throw error;input.value='';await loadMessages();}catch(err){notice('Message not sent',err.message.includes('active subscriber')?'Sending messages requires an active subscription. Subscription payment activation is not configured yet.':err.message||'Please try again.');}finally{button.disabled=false;}});
+$('#message-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!supabase||!currentUser||!selectedMatch)return;const input=$('#message-input'),body=input.value.trim();if(!body)return;const button=e.submitter;button.disabled=true;try{const {error}=await supabase.from('messages').insert({match_id:selectedMatch.id,sender_id:currentUser.id,recipient_id:selectedMatch.other,body});if(error)throw error;input.value='';await loadMessages();}catch(err){notice('Message not sent',err.message.toLowerCase().includes('active subscriber')?'Sending messages requires an active subscription.':err.message||'Please try again.');}finally{button.disabled=false;}});
 $('#refresh-discover')?.addEventListener('click',()=>loadProfiles('#discover-profiles'));$('#refresh-matches')?.addEventListener('click',loadMatches);
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 async function likeProfile(id,button){if(!supabase||!currentUser){notice('Sign in required','Please sign in to express interest in a profile.');return;}button.disabled=true;try{const {error}=await supabase.from('likes').upsert({from_user:currentUser.id,to_user:id},{onConflict:'from_user,to_user'});if(error)throw error;button.textContent='♥ Liked';button.classList.remove('btn-blue');button.classList.add('btn-outline');const {count}=await supabase.from('likes').select('id',{count:'exact',head:true}).eq('from_user',currentUser.id);$('#stat-likes').textContent=String(count||0);notice('Interest sent','Your interest was saved. A match is created only if the other person also likes your profile.');}catch(e){notice('Could not like profile',e.message||'Please try again.');button.disabled=false;}}
-$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;if(!currentUser){$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');}});refreshSession();
+$('#subscription-choose-plan')?.addEventListener('click',()=>$('#plans')?.scrollIntoView({behavior:'smooth',block:'start'}));
+$('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;if(!currentUser){$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#subscription-gate').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');}});refreshSession().then(()=>handlePaymentReturn());
 
 
 })();

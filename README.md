@@ -62,3 +62,29 @@ Members must upload one main profile photo during first profile setup. Up to thr
 ## Payment status
 
 The existing browser app does not yet include a secure Paystack verification endpoint. Do not activate paid subscriptions from browser-side code or put a Paystack secret key in `public/config.js`. A server-side checkout initialization, webhook signature verification and transaction verification flow still needs to be implemented and configured before accepting payments. The agreed plan is ₦1,000 monthly.
+
+
+## Secure Paystack subscription checkout (backend)
+
+The Node server now initializes Paystack transactions, verifies payment references server-side, and activates pending subscriptions only after successful verification. A Paystack webhook endpoint is included as a second confirmation path.
+
+### Render environment variables
+Keep all of these in Render Environment (never commit them into files):
+- `SUPABASE_URL` (existing)
+- `SUPABASE_PUBLISHABLE_KEY` (existing browser-safe key)
+- `SUPABASE_SERVICE_ROLE_KEY` (server-only Supabase service role secret)
+- `PAYSTACK_SECRET_KEY` (server-only Paystack secret key)
+- `APP_URL` = the full deployed website URL, e.g. `https://abujaconnect.onrender.com`
+
+### Paystack webhook
+Set the Paystack webhook URL to `https://YOUR_SITE/api/payments/paystack-webhook`. The endpoint supports the modern `Paystack-Signature` (with optional `PAYSTACK_WEBHOOK_SECRET`) and the classic `x-paystack-signature` HMAC fallback. Configure webhook events to include `charge.success`. If using modern webhook signatures, add the signing secret to Render as `PAYSTACK_WEBHOOK_SECRET`.
+
+### Supabase migration
+After reviewing your current RLS policies and backup/exporting the database, apply `supabase/paystack-subscription-gates.sql` in the Supabase SQL Editor. This migration does not drop tables or data. It adds an email column to subscriptions and updates RLS gates for discovery profiles, likes, matches, and message reads. The migration is not applied automatically by the website.
+
+### Plan pricing (NGN)
+Regular: 1 month ₦1,000; 3 months ₦2,700; 6 months ₦5,000; 1 year ₦9,000. Escort: 1 month ₦2,000; 3 months ₦5,400; 6 months ₦10,000; 1 year ₦18,000. Amounts are server-defined in kobo; frontend amounts are not trusted.
+
+Payment flow: signed-in user -> backend creates pending subscription row -> backend initializes Paystack -> hosted checkout -> callback verifies transaction -> activate subscription -> webhook verifies/activates idempotently. Renewals extend from the current valid subscription expiry.
+
+See `PAYSTACK_DEPLOYMENT_CHECKLIST.md` for the required Render secrets, webhook configuration, database migration, and test steps before deploying to the live site.
