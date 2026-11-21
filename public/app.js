@@ -92,10 +92,15 @@ async function apiRequest(path,body=null){
   const response=await fetch(path,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
   const payload=await response.json().catch(()=>({error:'Unexpected server response'}));if(!response.ok)throw new Error(payload.error||'Request failed');return payload;
 }
-async function subscriptionStatus(){try{return await apiRequest('/api/payments/status');}catch{return {active:false};}}
-function showSubscriptionGate(){
-  $('#subscription-gate').hidden=false;$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;
-  document.querySelector('.site-header').hidden=false;renderAuthState();$('#subscription-gate').scrollIntoView({behavior:'smooth',block:'start'});
+async function subscriptionStatus(){try{return await apiRequest('/api/payments/status');}catch(err){return {active:false,error:err.message||'Subscription status could not be checked.'};}}
+function showSubscriptionGate(statusError=''){
+  // The gate is inside #member-dashboard, so its parent must stay visible.
+  $('#member-dashboard').hidden=false;$('#profile-onboarding').hidden=true;$('#subscription-gate').hidden=false;
+  document.querySelectorAll('.dashboard-view').forEach(p=>p.hidden=true);
+  const title=$('#subscription-gate-title'), message=$('#subscription-gate-message');
+  if(statusError){if(title)title.textContent='We could not check your membership';if(message)message.textContent=statusError+' Please try again in a moment. Your account has not been marked unpaid.';}
+  else {if(title)title.textContent='Unlock Abuja Connect';if(message)message.textContent='Your subscription gives you access to Discover, Likes, Matches, and Messenger. Select a plan below to continue.';}
+  document.querySelector('.site-header').hidden=false;document.body.classList.add('is-authenticated');$('#subscription-gate').scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function startCheckout(accountType,duration,button){
   if(!currentUser||!supabase){notice('Sign in first','Create your Abuja Connect account or log in, then choose a subscription plan.');$('#auth-card').closest('.hero').hidden=false;$('#auth-card').scrollIntoView({behavior:'smooth',block:'center'});setAuthMode('login');return;}
@@ -124,6 +129,7 @@ async function routeAuthenticatedUser(isNewSignup=false){
   if(isNewSignup||!data){renderPrices();showOnboarding();return;}
   renderPrices();
   const status=await subscriptionStatus();
+  if(status.error){showSubscriptionGate(status.error);return;}
   if(!status.active){showSubscriptionGate();return;}
   const name=data.display_name||currentUser.user_metadata?.display_name||'member';
   $('#member-name').textContent=name;$('#sidebar-member-name').textContent=name;$('#member-email').textContent=currentUser.email||'';
@@ -229,7 +235,7 @@ $('#onboarding-form')?.addEventListener('submit',async e=>{
   e.preventDefault();if(!supabase||!currentUser)return;
   const button=$('#onboarding-submit');const mainPhoto=$('#onboard-avatar')?.files?.[0];const extraPhotos=Array.from($('#onboard-extra-photos')?.files||[]);if(!mainPhoto){$('#onboarding-message').textContent='Please add your main profile photo to continue.';return;}if(extraPhotos.length>3){$('#onboarding-message').textContent='You can add up to 3 additional photos.';return;}button.disabled=true;$('#onboarding-message').textContent='Uploading photos and saving your profile…';
   const values={id:currentUser.id,display_name:$('#onboard-display-name').value.trim(),gender:$('#onboard-gender').value,city:$('#onboard-city').value.trim(),bio:$('#onboard-bio').value.trim(),interests:$('#onboard-interests').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20),account_type:currentUser.user_metadata?.account_type||'regular',age_confirmed:true,updated_at:new Date().toISOString()};
-  try{const photos=await uploadProfileImages(mainPhoto,extraPhotos);Object.assign(values,photos);const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;memberProfile=values;$('#sidebar-avatar').src=safeUrl(values.avatar_url);$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;const status=await subscriptionStatus();if(status.active)await enterDashboard();else showSubscriptionGate();}
+  try{const photos=await uploadProfileImages(mainPhoto,extraPhotos);Object.assign(values,photos);const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;memberProfile=values;$('#sidebar-avatar').src=safeUrl(values.avatar_url);$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;const status=await subscriptionStatus();if(status.error)showSubscriptionGate(status.error);else if(status.active)await enterDashboard();else showSubscriptionGate();}
   catch(err){$('#onboarding-message').textContent=err.message||'Could not save your profile. Please try again.';}
   finally{button.disabled=false;}
 });
