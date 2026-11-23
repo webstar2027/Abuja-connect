@@ -88,3 +88,11 @@ Regular: 1 month ₦1,000; 3 months ₦2,700; 6 months ₦5,000; 1 year ₦9,000
 Payment flow: signed-in user -> backend creates pending subscription row -> backend initializes Paystack -> hosted checkout -> callback verifies transaction -> activate subscription -> webhook verifies/activates idempotently. Renewals extend from the current valid subscription expiry.
 
 See `PAYSTACK_DEPLOYMENT_CHECKLIST.md` for the required Render secrets, webhook configuration, database migration, and test steps before deploying to the live site.
+
+
+## Current access model (Premium Social Update)
+
+Free: signup/login, profile, Discover, Encounters (Like/Pass), and mutual Matches.
+Premium: all free features plus Messages. Both reading and sending messages require an active subscription enforced by Supabase RLS.
+
+For an existing Supabase project, back up first. If the free-social migration has not been applied, run `supabase/free-social-access-migration.sql`, then run `supabase/premium-messaging-migration.sql` to ensure messaging is Premium-only. If the free-social migration is already applied, run only the Premium Messaging migration. Neither migration deletes tables or member data.

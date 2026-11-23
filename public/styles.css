@@ -496,3 +496,22 @@ body:not(.is-authenticated) .text-link,body:not(.is-authenticated) .auth-switch 
 .subscription-gate-card h1{margin:10px 0 14px;font-size:clamp(1.8rem,4vw,2.8rem);color:#5e1231;}
 .subscription-gate-card p{line-height:1.65;color:#5b4650;max-width:620px;margin:0 auto 22px;}
 .subscription-gate-card .gate-footnote{font-size:.88rem;margin-top:18px;margin-bottom:0;color:#78636b;}
+
+/* Badoo-inspired Encounters view */
+.encounters-stage{max-width:600px;margin:28px auto 0;display:flex;justify-content:center}
+.encounter-card{width:min(100%,560px);overflow:hidden;border:1px solid #314f77;border-radius:22px;background:#09234b;box-shadow:0 22px 60px #0004}
+.encounter-photo{height:clamp(280px,45vw,500px);background-position:center;background-size:cover;background-color:#23466d}
+.encounter-card .profile-info{padding:24px}
+.encounter-card h2{margin:0 0 5px;font-size:27px;color:#fff}
+.encounter-card .profile-info p{color:#c5d6ef}
+.encounter-actions{display:flex;gap:12px;margin-top:22px}
+.encounter-actions button{flex:1;min-height:52px;border-radius:14px;font-size:16px}
+.encounter-actions .btn-outline{border-color:#9ab9e5;color:#e8f1ff}
+.encounter-actions .btn-blue{background:#f01446;border-color:#f01446}
+
+/* Premium-only chat lock: keep discovery, likes, and matches available to free members. */
+.premium-chat-lock{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:28px 20px;max-width:520px;margin:18px auto;background:#fff;border:1px solid #f0d5dc;border-radius:18px;box-shadow:0 12px 32px rgba(90,20,42,.08)}
+.premium-chat-lock h3{margin:0;color:#242334;font-size:1.25rem}
+.premium-chat-lock p{margin:0;color:#656477;line-height:1.6}
+.premium-lock-icon{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:#fff0f4;font-size:1.8rem}
+.premium-chat-lock .btn{min-width:190px}
