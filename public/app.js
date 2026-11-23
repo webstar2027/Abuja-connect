@@ -94,7 +94,19 @@ async function apiRequest(path,body=null){
   const payload=await response.json().catch(()=>({error:'Unexpected server response'}));if(!response.ok)throw new Error(payload.error||'Request failed');return payload;
 }
 async function subscriptionStatus(){return await apiRequest('/api/payments/status');}
-function showPremiumMessagingLock(message='Messaging is a Premium feature. Subscribe to unlock conversations and send messages.'){const list=$('#conversation-list');if(list)list.innerHTML='<div class="premium-chat-lock"><div class="premium-lock-icon">🔒</div><h3>Premium messaging</h3><p>Messaging is available to active Premium subscribers only.</p><button type="button" class="btn btn-blue" data-premium-plans>View Premium plans</button><button type="button" class="btn btn-outline" data-premium-retry>Retry access check</button></div>';const empty=$('#conversation-empty');const content=$('#conversation-content');if(empty){empty.hidden=false;empty.innerHTML='<div class="premium-chat-lock"><div class="premium-lock-icon">🔒</div><h3>Unlock messaging with Premium</h3><p>'+escapeHtml(message)+'</p><button type="button" class="btn btn-blue" data-premium-plans>View Premium plans</button></div>';}if(content)content.hidden=true;document.querySelectorAll('[data-premium-plans]').forEach(b=>b.onclick=()=>document.querySelector('#plans')?.scrollIntoView({behavior:'smooth',block:'start'}));document.querySelectorAll('[data-premium-retry]').forEach(b=>b.onclick=()=>loadConversations());}
+function showPremiumMessagingLock(message='Messaging is a Premium feature. Subscribe to unlock conversations and send messages.'){
+  const list=$('#conversation-list');
+  if(list)list.innerHTML='<div class="premium-chat-sidebar-lock"><div class="premium-lock-badge">🔒</div><strong>Premium messaging</strong><p>Chat is unlocked with an active subscription.</p><button type="button" class="btn btn-blue" data-premium-plans>Subscribe to Premium</button><button type="button" class="btn btn-outline" data-premium-retry>Retry access check</button></div>';
+  const empty=$('#conversation-empty');
+  const content=$('#conversation-content');
+  if(empty){
+    empty.hidden=false;
+    empty.innerHTML='<div class="premium-chat-screen"><div class="premium-chat-top"><div class="premium-chat-avatar">💬</div><div><strong>Messages</strong><small>Premium conversations</small></div><span class="premium-chat-lock-pill">LOCKED</span></div><div class="premium-chat-center"><div class="premium-chat-lock-art"><span>🔒</span></div><h3>Unlock messaging with Premium</h3><p>'+escapeHtml(message)+'</p><button type="button" class="btn btn-blue premium-subscribe-btn" data-premium-plans><span>♛</span> Subscribe to Premium</button><p class="premium-chat-footnote">Subscribe to start conversations with your matches.</p></div><div class="premium-chat-composer-preview"><button type="button" class="composer-plus" data-premium-plans aria-label="Subscribe to unlock">＋</button><button type="button" class="composer-placeholder" data-premium-plans>Message…</button><button type="button" class="composer-icon" data-premium-plans aria-label="Locked emoji">☺</button><button type="button" class="composer-send-locked" data-premium-plans aria-label="Subscribe to send"><span>🔒</span></button></div></div>';
+  }
+  if(content)content.hidden=true;
+  document.querySelectorAll('[data-premium-plans]').forEach(b=>b.onclick=()=>document.querySelector('#plans')?.scrollIntoView({behavior:'smooth',block:'start'}));
+  document.querySelectorAll('[data-premium-retry]').forEach(b=>b.onclick=()=>loadConversations());
+}
 function showSubscriptionGate(){
   $('#subscription-gate').hidden=false;$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;
   document.querySelector('.site-header').hidden=false;renderAuthState();$('#subscription-gate').scrollIntoView({behavior:'smooth',block:'start'});

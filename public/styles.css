@@ -746,3 +746,44 @@ body.is-authenticated .message-form input { background:#fff!important; }
 body.is-authenticated .dashboard-view[ data-panel="discover"] .profile-grid { gap:20px; }
 @media(max-width:900px){ body.is-authenticated .member-dashboard{grid-template-columns:210px minmax(0,1fr)} body.is-authenticated .dashboard-sidebar{padding:18px 12px!important} body.is-authenticated .dashboard-main{padding:22px 18px!important} }
 @media(max-width:760px){ body.is-authenticated .member-dashboard{display:flex;flex-direction:column} body.is-authenticated .dashboard-sidebar{position:fixed;z-index:30;top:auto;bottom:0;left:0;right:0;width:100%;height:auto;max-height:82px;overflow:visible;display:flex;flex-direction:row;align-items:center;justify-content:space-around;gap:3px;padding:8px 7px calc(8px + env(safe-area-inset-bottom))!important;border-right:0;border-top:1px solid #e7ecf4;box-shadow:0 -8px 24px rgba(20,42,80,.05)} body.is-authenticated .dashboard-sidebar>.eyebrow,body.is-authenticated .dashboard-sidebar>h2,body.is-authenticated .sidebar-user{display:none!important} body.is-authenticated .dashboard-tab{flex:1;min-width:0;min-height:55px;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:6px 2px!important;font-size:9px!important;text-align:center} body.is-authenticated .dashboard-tab .nav-icon{width:20px;height:20px} body.is-authenticated .dashboard-tab span:not(.premium-nav-pill){white-space:nowrap} body.is-authenticated .premium-nav-pill{display:none} body.is-authenticated .dashboard-tab.dashboard-logout{margin:0} body.is-authenticated .dashboard-main{padding:18px 14px 105px!important} body.is-authenticated .dashboard-topline{margin-bottom:16px} body.is-authenticated .dashboard-topline h1{font-size:24px} body.is-authenticated .welcome-panel{padding:20px!important} body.is-authenticated .dashboard-main .profile-photo{height:220px!important} }
+
+
+/* Premium chat: refreshed layout with a disabled, subscription-gated composer. */
+.premium-chat-sidebar-lock{padding:14px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;background:#f8fbff;border:1px solid #e5edf9;border-radius:14px}
+.premium-chat-sidebar-lock .premium-lock-badge{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#e9f2ff;font-size:18px}
+.premium-chat-sidebar-lock strong{font-size:14px;color:#24334c}
+.premium-chat-sidebar-lock p{font-size:12px;line-height:1.45;color:#718096;margin:0 0 4px}
+.premium-chat-sidebar-lock .btn{width:100%;font-size:12px;padding:9px 10px}
+.premium-chat-screen{min-height:360px;display:flex;flex-direction:column;background:#fff;border:1px solid #e7edf5;border-radius:18px;overflow:hidden}
+.premium-chat-top{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid #eef1f6;background:#fff}
+.premium-chat-avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:#edf4ff;font-size:22px}
+.premium-chat-top strong{display:block;font-size:15px;color:#1e2c44}
+.premium-chat-top small{display:block;color:#8190a6;font-size:12px;margin-top:2px}
+.premium-chat-lock-pill{margin-left:auto;background:#f1f5ff;color:#4267c7;font-size:10px;font-weight:800;letter-spacing:.08em;padding:6px 9px;border-radius:999px}
+.premium-chat-center{flex:1;min-height:265px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:25px 22px 20px}
+.premium-chat-lock-art{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#eff6ff,#fff);border:1px solid #dce9ff;box-shadow:0 8px 24px rgba(37,99,235,.10);margin-bottom:12px}
+.premium-chat-lock-art span{font-size:27px}
+.premium-chat-center h3{font-size:21px;letter-spacing:-.02em;color:#1e2b42;margin:0 0 8px}
+.premium-chat-center>p{max-width:410px;color:#748198;font-size:14px;line-height:1.65;margin:0}
+.premium-chat-center .premium-subscribe-btn{margin-top:18px;border-radius:999px;padding:13px 22px;box-shadow:0 8px 18px rgba(37,99,235,.18);font-weight:800}
+.premium-chat-footnote{font-size:12px!important;margin-top:12px!important;color:#98a2b3!important}
+.premium-chat-composer-preview{margin:0 14px 14px;padding:9px 10px;display:flex;align-items:center;gap:10px;background:#f1f3f6;border:1px solid #e9edf2;border-radius:999px}
+.premium-chat-composer-preview button{border:0;background:transparent;cursor:pointer}
+.composer-plus,.composer-icon{color:#2563eb;font-size:24px;width:34px;height:34px;display:grid;place-items:center;flex-shrink:0}
+.composer-placeholder{flex:1;text-align:left;color:#9aa4b2;padding:7px 3px;font-size:15px}
+.composer-send-locked{width:40px;height:40px;border-radius:50%!important;background:#d4dbe6!important;display:grid;place-items:center;color:#fff}
+.composer-send-locked span{font-size:16px}
+@media(max-width:760px){.chat-layout{grid-template-columns:1fr;min-height:unset}.conversation-list{border-right:0;border-bottom:1px solid #e0e7f1}.premium-chat-screen{min-height:330px}.premium-chat-center{min-height:230px;padding:22px 14px}.premium-chat-center h3{font-size:19px}}
+
+/* Active chat view restyled to match the rounded chat reference (light theme). */
+.conversation-panel{padding:0;background:#fff;display:flex;flex-direction:column;min-height:370px}
+.conversation-heading{padding:15px 18px;border-bottom:1px solid #eef1f6;font-size:15px}
+.message-list{flex:1;height:auto;min-height:250px;max-height:420px;padding:18px;gap:12px;background:#fff}
+.chat-bubble{max-width:80%;padding:12px 16px;border-radius:20px;background:#f0f2f5;color:#313b4c;font-size:15px;box-shadow:0 1px 2px rgba(20,40,70,.04)}
+.chat-bubble.mine{align-self:flex-end;background:#2563eb;color:#fff;border-bottom-right-radius:7px}
+.chat-bubble:not(.mine){border-bottom-left-radius:7px}
+.chat-bubble small{color:inherit;opacity:.65;font-size:10px}
+.message-form{align-items:center;padding:12px 14px;border-top:1px solid #edf0f5;background:#fff;gap:10px}
+.message-form input{border:0!important;background:#f1f3f6!important;border-radius:999px!important;padding:13px 16px!important;color:#344054}
+.message-form button{border:0;border-radius:50%!important;width:44px;height:44px;min-width:44px;padding:0;background:#2563eb;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.18)}
+@media(max-width:760px){.conversation-panel{min-height:330px}.message-list{min-height:220px;max-height:55vh;padding:14px}.message-form{padding:10px}}
