@@ -162,6 +162,7 @@ async function handleApi(req, res, pathname) {
 
 http.createServer(async (req, res) => {
   const pathname = new URL(req.url || '/', 'http://localhost').pathname;
+  if (pathname === '/healthz' && req.method === 'GET') return json(res, 200, { ok: true, service: 'abuja-connect' });
   if (pathname.startsWith('/api/')) {
     try { return await handleApi(req, res, pathname); }
     catch (err) { console.error('API error:', err.message); return json(res, 500, { error: 'Payment service temporarily unavailable. Please try again.' }); }
