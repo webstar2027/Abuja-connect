@@ -1,5 +1,6 @@
--- Abuja Connect v1 schema. Run in the NEW Abuja Connect Supabase project only.
--- Safe to rerun: creates objects if missing; does not drop existing tables or data.
+-- Abuja Connect clean database setup (fresh Supabase project only).
+-- Creates the complete schema for the current website build.
+-- Do NOT run this as a reset on a database containing member data.
 create extension if not exists pgcrypto;
 
 create table if not exists public.profiles (
@@ -11,6 +12,7 @@ create table if not exists public.profiles (
   bio text not null default '',
   interests text[] not null default '{}',
   avatar_url text,
+  additional_photo_urls text[] not null default '{}',
   age_confirmed boolean not null default false,
   is_banned boolean not null default false,
   created_at timestamptz not null default now(),
@@ -35,7 +37,7 @@ create table if not exists public.likes (
   to_user uuid not null references auth.users(id) on delete cascade,
   created_at timestamptz not null default now(),
   unique(from_user,to_user),
-  check (from_user <> to_user)
+  check(from_user <> to_user)
 );
 
 create table if not exists public.matches (
@@ -43,7 +45,7 @@ create table if not exists public.matches (
   user_one uuid not null references auth.users(id) on delete cascade,
   user_two uuid not null references auth.users(id) on delete cascade,
   created_at timestamptz not null default now(),
-  check (user_one <> user_two),
+  check(user_one <> user_two),
   unique(user_one,user_two)
 );
 
@@ -52,11 +54,14 @@ create table if not exists public.messages (
   match_id uuid not null references public.matches(id) on delete cascade,
   sender_id uuid not null references auth.users(id) on delete cascade,
   recipient_id uuid not null references auth.users(id) on delete cascade,
-  body text not null check (char_length(body) between 1 and 4000),
+  body text not null check(char_length(body) between 1 and 4000),
   created_at timestamptz not null default now(),
   read_at timestamptz,
-  check (sender_id <> recipient_id)
+  check(sender_id <> recipient_id)
 );
+
+alter table public.profiles add column if not exists gender text check (gender in ('woman','man','non_binary','prefer_not_to_say'));
+alter table public.profiles add column if not exists additional_photo_urls text[] not null default '{}';
 
 create index if not exists likes_to_user_idx on public.likes(to_user);
 create index if not exists messages_match_created_idx on public.messages(match_id,created_at);
@@ -80,7 +85,7 @@ as $$
 declare lo uuid; hi uuid;
 begin
   if exists(select 1 from public.likes where from_user=new.to_user and to_user=new.from_user) then
-    lo := least(new.from_user,new.to_user); hi := greatest(new.from_user,new.to_user);
+    lo:=least(new.from_user,new.to_user); hi:=greatest(new.from_user,new.to_user);
     insert into public.matches(user_one,user_two) values(lo,hi) on conflict(user_one,user_two) do nothing;
   end if;
   return new;
@@ -92,9 +97,12 @@ create or replace function public.create_profile_for_new_user()
 returns trigger language plpgsql security definer set search_path=public
 as $$
 begin
-  insert into public.profiles(id,display_name,account_type,age_confirmed)
-  values(new.id,coalesce(nullif(new.raw_user_meta_data->>'display_name',''), 'Abuja Connect member'),
+  insert into public.profiles(id,display_name,account_type,gender,city,age_confirmed)
+  values(new.id,
+    coalesce(nullif(new.raw_user_meta_data->>'display_name',''),'Abuja Connect member'),
     case when new.raw_user_meta_data->>'account_type'='escort' then 'escort' else 'regular' end,
+    case when new.raw_user_meta_data->>'gender' in ('woman','man','non_binary','prefer_not_to_say') then new.raw_user_meta_data->>'gender' else null end,
+    coalesce(nullif(new.raw_user_meta_data->>'city',''),'Abuja'),
     coalesce((new.raw_user_meta_data->>'age_confirmed')::boolean,false))
   on conflict(id) do nothing;
   return new;
@@ -109,39 +117,43 @@ alter table public.matches enable row level security;
 alter table public.messages enable row level security;
 
 drop policy if exists "profiles readable by authenticated members" on public.profiles;
-create policy "profiles readable by authenticated members" on public.profiles for select to authenticated using (is_banned=false);
+create policy "profiles readable by authenticated members" on public.profiles for select to authenticated using(is_banned=false);
 drop policy if exists "members insert own profile" on public.profiles;
-create policy "members insert own profile" on public.profiles for insert to authenticated with check (id=auth.uid() and age_confirmed=true);
+create policy "members insert own profile" on public.profiles for insert to authenticated with check(id=auth.uid() and age_confirmed=true);
 drop policy if exists "members update own profile" on public.profiles;
-create policy "members update own profile" on public.profiles for update to authenticated using (id=auth.uid()) with check (id=auth.uid() and is_banned=false);
-
+create policy "members update own profile" on public.profiles for update to authenticated using(id=auth.uid()) with check(id=auth.uid() and is_banned=false);
 drop policy if exists "members read own subscriptions" on public.subscriptions;
-create policy "members read own subscriptions" on public.subscriptions for select to authenticated using (user_id=auth.uid());
--- Deliberately no client insert/update policy on subscriptions: payment status must be changed by a trusted server after Paystack verification.
-
+create policy "members read own subscriptions" on public.subscriptions for select to authenticated using(user_id=auth.uid());
 drop policy if exists "members read likes involving them" on public.likes;
-create policy "members read likes involving them" on public.likes for select to authenticated using (from_user=auth.uid() or to_user=auth.uid());
+create policy "members read likes involving them" on public.likes for select to authenticated using(from_user=auth.uid() or to_user=auth.uid());
 drop policy if exists "members like from own account" on public.likes;
-create policy "members like from own account" on public.likes for insert to authenticated with check (from_user=auth.uid() and to_user<>auth.uid() and exists(select 1 from public.profiles p where p.id=to_user and p.is_banned=false));
+create policy "members like from own account" on public.likes for insert to authenticated with check(from_user=auth.uid() and to_user<>auth.uid() and exists(select 1 from public.profiles p where p.id=to_user and p.is_banned=false));
 drop policy if exists "members update own like" on public.likes;
-create policy "members update own like" on public.likes for update to authenticated using (from_user=auth.uid()) with check (from_user=auth.uid());
-
+create policy "members update own like" on public.likes for update to authenticated using(from_user=auth.uid()) with check(from_user=auth.uid());
 drop policy if exists "members read own matches" on public.matches;
-create policy "members read own matches" on public.matches for select to authenticated using (user_one=auth.uid() or user_two=auth.uid());
-
-drop policy if exists "matched members read messages" on public.messages;
-create policy "matched members read messages" on public.messages for select to authenticated using ((sender_id=auth.uid() or recipient_id=auth.uid()) and public.is_match_member(match_id,auth.uid()));
+create policy "members read own matches" on public.matches for select to authenticated using(user_one=auth.uid() or user_two=auth.uid());
+drop policy if exists "active subscribers read matched messages" on public.messages;
+create policy "active subscribers read matched messages" on public.messages for select to authenticated using((sender_id=auth.uid() or recipient_id=auth.uid()) and public.is_match_member(match_id,auth.uid()) and public.is_active_subscriber(auth.uid()));
 drop policy if exists "active subscribers can send to a match" on public.messages;
-create policy "active subscribers can send to a match" on public.messages for insert to authenticated with check (
-  sender_id=auth.uid()
-  and public.is_active_subscriber(auth.uid())
-  and public.is_match_between(match_id,sender_id,recipient_id)
-  and exists(select 1 from public.profiles p where p.id=recipient_id and p.is_banned=false)
-);
+create policy "active subscribers can send to a match" on public.messages for insert to authenticated with check(sender_id=auth.uid() and public.is_active_subscriber(auth.uid()) and public.is_match_between(match_id,sender_id,recipient_id) and exists(select 1 from public.profiles p where p.id=recipient_id and p.is_banned=false));
 
-grant usage on schema public to authenticated;
-grant select,insert,update on public.profiles to authenticated;
+grant usage on schema public to authenticated, service_role;
+grant select,insert,update on public.profiles to authenticated, service_role;
 grant select on public.subscriptions to authenticated;
-grant select,insert,update on public.likes to authenticated;
-grant select on public.matches to authenticated;
-grant select,insert on public.messages to authenticated;
+grant select,insert,update on public.likes to authenticated, service_role;
+grant select on public.matches to authenticated, service_role;
+grant select,insert on public.messages to authenticated, service_role;
+grant all on public.subscriptions to service_role;
+
+-- Photo storage: public display, authenticated user-owned upload/replace/delete paths.
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+values('profile-photos','profile-photos',true,8388608,array['image/jpeg','image/png','image/webp'])
+on conflict(id) do update set public=true,file_size_limit=8388608,allowed_mime_types=array['image/jpeg','image/png','image/webp'];
+drop policy if exists "Profile photos are publicly readable" on storage.objects;
+create policy "Profile photos are publicly readable" on storage.objects for select using(bucket_id='profile-photos');
+drop policy if exists "Members upload their own profile photos" on storage.objects;
+create policy "Members upload their own profile photos" on storage.objects for insert to authenticated with check(bucket_id='profile-photos' and (storage.foldername(name))[1]=auth.uid()::text);
+drop policy if exists "Members update their own profile photos" on storage.objects;
+create policy "Members update their own profile photos" on storage.objects for update to authenticated using(bucket_id='profile-photos' and (storage.foldername(name))[1]=auth.uid()::text) with check(bucket_id='profile-photos' and (storage.foldername(name))[1]=auth.uid()::text);
+drop policy if exists "Members delete their own profile photos" on storage.objects;
+create policy "Members delete their own profile photos" on storage.objects for delete to authenticated using(bucket_id='profile-photos' and (storage.foldername(name))[1]=auth.uid()::text);

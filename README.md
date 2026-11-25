@@ -1,98 +1,50 @@
-# Abuja Connect — GitHub + Render + Supabase
+# Abuja Connect — Rebuilt Project Package
 
-This package contains the Abuja Connect redesign based on the original visual blueprint and the latest red-edition project files. The public experience is a full-screen Abuja landmark slideshow with one centered Login / Sign Up card. Existing users go directly to the social dashboard after login; first-time registrants complete the Welcome / Profile Setup screen before entering the dashboard.
+This is the rebuilt Abuja Connect website project. It includes the browser frontend, Node server, secure Paystack API routes, and a consolidated Supabase schema.
 
-## Deploy on Render
+## Project layout
+- `server.js` — static site server, Supabase auth token validation, Paystack initialization/verification/webhook APIs.
+- `public/index.html` — landing/auth screen, onboarding, member dashboard, Discover, Encounters, Matches, Messages, Premium plans.
+- `public/app.js` — frontend state, auth, profile, likes, matches, Premium checkout and messaging access.
+- `public/styles.css` — clean responsive white/light visual system; replaces the previous accumulated CSS patches.
+- `public/config.js` — local empty fallback only. Render dynamically serves `/config.js` from environment variables.
+- `supabase/schema.sql` — consolidated, rerunnable setup for a **fresh database**. It includes the core tables, Premium messaging RLS and profile-photo storage.
+- `supabase/archive/` — prior incremental SQL files preserved for reference. Do not run these on top of the new consolidated schema unless we explicitly review them.
 
-Create a **Web Service** (not a Static Site), connect this GitHub repository, and set:
+## Render environment
+Required server variables:
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (server only; never place in public files/GitHub)
+- `PAYSTACK_SECRET_KEY` (server only)
+- `APP_URL` = your deployed website URL
 
-- **Runtime:** Node
-- **Build Command:** leave blank
-- **Start Command:** `npm start`
-- **Instance type:** Free, if offered
+Optional:
+- `PAYSTACK_WEBHOOK_SECRET`
 
-Add these Environment Variables in Render → your service → **Environment**:
+Set Render Start Command to `npm start`. Node 18 or newer is required.
 
-- `SUPABASE_URL` = your Supabase Project URL
-- `SUPABASE_PUBLISHABLE_KEY` = your Supabase publishable key (or legacy anon key)
+## Fresh Supabase setup
+If creating a **brand-new Supabase project/database**, open SQL Editor and run `supabase/schema.sql` once. This script is written to be rerunnable and does not issue DROP TABLE or DELETE commands.
 
-Do not add a database password, `service_role` key, or Supabase secret key to these variables. The publishable key is intended for browser use; database access must be protected by Row Level Security (RLS).
+**Data-loss warning:** deleting or replacing the existing Supabase project/database will delete its Auth users and records. The website ZIP cannot restore account passwords or unknown tables such as any legacy `lives` table. Do not delete your existing database until you are certain you want a clean test project.
 
-After saving environment variables, redeploy. Visit `https://YOUR-RENDER-HOST/config.js` to check that the endpoint returns `window.ABUJA_CONFIG` with your project URL and a publishable key. Do not share that URL's contents publicly if you prefer not to.
+After running the consolidated schema, create/confirm email auth settings and Storage bucket policies, then set Render environment variables. Run a test account before live traffic.
 
-## Supabase setup
+## Current access rules
+- Signup/login: email + password.
+- Discovery, likes/encounters, and mutual matches: free.
+- Messages: both message reads and sending are gated by active Premium, enforced by database RLS.
+- Premium term pricing is server-defined and checkout is verified server-side by Paystack.
+- Plan terms are fixed-duration purchases; renewals extend an existing valid term.
 
-1. Create/select a dedicated Supabase project for Abuja Connect.
-2. In Authentication settings, enable Email sign-ups and email confirmation.
-3. In Authentication → URL Configuration, set Site URL to your exact Render URL and add that URL to Redirect URLs (for example `https://YOUR-RENDER-HOST/**` if wildcard paths are supported).
-4. Open SQL Editor and review/run `supabase/schema.sql` in the Abuja Connect project only. It creates profiles, subscriptions, likes, matches, and messages with RLS policies. Do not run it in another project.
+## Paystack pricing
+Regular: 1 month ₦1,000; 3 months ₦2,700; 6 months ₦5,000; 1 year ₦9,000.
+Escort: 1 month ₦2,000; 3 months ₦5,400; 6 months ₦10,000; 1 year ₦18,000.
 
-## GitHub update
+## Webhook
+Paystack endpoint: `/api/payments/paystack-webhook` (set the full URL in Paystack).
+Handle `charge.success` events. Do not use live mode until successful test transactions and webhook verification have been exercised.
 
-Extract the ZIP and upload/commit the contents of the `abuja-connect-work` folder into the root of your existing Abuja Connect repository so `package.json`, `server.js`, `public/`, and `supabase/` are at the repository root. Keep a backup or use a branch before replacing files.
-
-## Updated user journey
-
-- Public visitors see only the full-screen changing Abuja background and centered authentication card. Login and Sign Up are tabs in the same card.
-- Successful login checks for an existing profile and routes returning members directly to the dashboard.
-- Successful first-time registration routes to Welcome / Profile Setup. The profile is saved to the `profiles` table before the dashboard opens.
-- If email confirmation is enabled and Supabase does not create a session immediately, the visitor is asked to confirm their email and then log in; a missing profile routes them to setup.
-- The profile setup form collects display name, gender, city, about text, and interests.
-
-## What is and isn't implemented
-
-- Email/password registration and login through Supabase are implemented in the frontend, subject to correct Supabase settings and the schema being applied.
-- New user profile creation and basic profile discovery/likes/mutual matches are connected to the supplied SQL schema.
-- `public/config.js` is served dynamically by `server.js` on Render from the two environment variables above.
-- Sent.dm phone OTP, Google OAuth provider setup, Paystack checkout, full real-time messaging UI, image upload, reporting/moderation, and production hardening are not fully implemented/configured. Do not advertise those as active until separately completed and tested.
-
-## Important
-
-- Do not expose Supabase secret/service-role keys in frontend code or GitHub.
-- Supabase publishable keys are public by design, but RLS policies and auth rules must be configured correctly.
-- Test with a new test account and email before inviting real users.
-
-
-## Profile photo setup (existing Supabase project)
-
-Before deploying this redesign, open the existing Supabase project's SQL Editor and run `supabase/add-profile-photos.sql`. This is an additive migration: it adds `additional_photo_urls` and configures the `profile-photos` Storage bucket and per-user upload policies. It does not drop or replace existing tables or member records.
-
-Members must upload one main profile photo during first profile setup. Up to three optional additional photos are supported. Images are limited to JPG, PNG or WebP and 8 MB each.
-
-## Payment status
-
-The existing browser app does not yet include a secure Paystack verification endpoint. Do not activate paid subscriptions from browser-side code or put a Paystack secret key in `public/config.js`. A server-side checkout initialization, webhook signature verification and transaction verification flow still needs to be implemented and configured before accepting payments. The agreed plan is ₦1,000 monthly.
-
-
-## Secure Paystack subscription checkout (backend)
-
-The Node server now initializes Paystack transactions, verifies payment references server-side, and activates pending subscriptions only after successful verification. A Paystack webhook endpoint is included as a second confirmation path.
-
-### Render environment variables
-Keep all of these in Render Environment (never commit them into files):
-- `SUPABASE_URL` (existing)
-- `SUPABASE_PUBLISHABLE_KEY` (existing browser-safe key)
-- `SUPABASE_SERVICE_ROLE_KEY` (server-only Supabase service role secret)
-- `PAYSTACK_SECRET_KEY` (server-only Paystack secret key)
-- `APP_URL` = the full deployed website URL, e.g. `https://abujaconnect.onrender.com`
-
-### Paystack webhook
-Set the Paystack webhook URL to `https://YOUR_SITE/api/payments/paystack-webhook`. The endpoint supports the modern `Paystack-Signature` (with optional `PAYSTACK_WEBHOOK_SECRET`) and the classic `x-paystack-signature` HMAC fallback. Configure webhook events to include `charge.success`. If using modern webhook signatures, add the signing secret to Render as `PAYSTACK_WEBHOOK_SECRET`.
-
-### Supabase migration
-After reviewing your current RLS policies and backup/exporting the database, apply `supabase/paystack-subscription-gates.sql` in the Supabase SQL Editor. This migration does not drop tables or data. It adds an email column to subscriptions and updates RLS gates for discovery profiles, likes, matches, and message reads. The migration is not applied automatically by the website.
-
-### Plan pricing (NGN)
-Regular: 1 month ₦1,000; 3 months ₦2,700; 6 months ₦5,000; 1 year ₦9,000. Escort: 1 month ₦2,000; 3 months ₦5,400; 6 months ₦10,000; 1 year ₦18,000. Amounts are server-defined in kobo; frontend amounts are not trusted.
-
-Payment flow: signed-in user -> backend creates pending subscription row -> backend initializes Paystack -> hosted checkout -> callback verifies transaction -> activate subscription -> webhook verifies/activates idempotently. Renewals extend from the current valid subscription expiry.
-
-See `PAYSTACK_DEPLOYMENT_CHECKLIST.md` for the required Render secrets, webhook configuration, database migration, and test steps before deploying to the live site.
-
-
-## Current access model (Premium Social Update)
-
-Free: signup/login, profile, Discover, Encounters (Like/Pass), and mutual Matches.
-Premium: all free features plus Messages. Both reading and sending messages require an active subscription enforced by Supabase RLS.
-
-For an existing Supabase project, back up first. If the free-social migration has not been applied, run `supabase/free-social-access-migration.sql`, then run `supabase/premium-messaging-migration.sql` to ensure messaging is Premium-only. If the free-social migration is already applied, run only the Premium Messaging migration. Neither migration deletes tables or member data.
+## Legacy SQL
+Previous migration files are in `supabase/archive/` for reference only. The clean setup should use the consolidated `schema.sql`, not the archived migrations.

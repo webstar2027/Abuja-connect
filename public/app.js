@@ -10,7 +10,9 @@ const planPrices = {
 let selectedType='regular', authMode='login', currentUser=null, supabase=null;
 const $=s=>document.querySelector(s);
 const modal=$('#notice-modal');
-function notice(title,body){$('#notice-title').textContent=title;$('#notice-body').textContent=body;if(modal?.showModal)modal.showModal();else alert(`${title}\n\n${body}`)}
+function notice(title,body){$('#notice-title').textContent=title;$('#notice-body').textContent=body;if(modal?.showModal)modal.showModal();else alert(`${title}
+
+${body}`)}
 function configured(){return window.ABUJA_CONFIG && window.ABUJA_CONFIG.supabaseUrl.startsWith('https://') && !window.ABUJA_CONFIG.supabaseUrl.includes('PASTE_') && window.ABUJA_CONFIG.supabasePublishableKey && !window.ABUJA_CONFIG.supabasePublishableKey.includes('PASTE_') && window.supabase;}
 if(configured()) supabase=window.supabase.createClient(window.ABUJA_CONFIG.supabaseUrl,window.ABUJA_CONFIG.supabasePublishableKey);
 function renderPrices(){const grid=$('#prices');if(!grid)return;grid.innerHTML=planPrices[selectedType].map((p,i)=>`<article class="price-card ${i===2?'featured':''}"><b>${p.duration}</b><div class="price">${p.price}</div><small>${i===0?'Flexible duration':'Subscription plan'}</small><button class="btn btn-blue" data-plan="${p.duration}">Choose plan</button></article>`).join('');grid.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>startCheckout(selectedType,b.dataset.plan,b));}
@@ -48,11 +50,11 @@ function renderAuthState(){
   }
 }
 function showDashboardView(view){
-  const allowed=['dashboard','discover','encounters','matches','messages','profile'];
+  const allowed=['dashboard','discover','encounters','matches','messages','profile','premium'];
   activeDashboardView=allowed.includes(view)?view:'dashboard';
   document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==activeDashboardView);
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===activeDashboardView));
-  const titles={dashboard:'Dashboard',discover:'Discover people',encounters:'Encounters',matches:'My matches',messages:'Messages',profile:'My profile'};
+  const titles={dashboard:'Dashboard',discover:'Discover people',encounters:'Encounters',matches:'My matches',messages:'Messages',profile:'My profile',premium:'Premium membership'};
   $('#dashboard-title').textContent=titles[activeDashboardView];
   if(!currentUser)return;
   if(activeDashboardView==='discover')loadProfiles('#discover-profiles');
@@ -61,6 +63,7 @@ function showDashboardView(view){
   if(activeDashboardView==='matches')loadMatches();
   if(activeDashboardView==='messages')loadConversations();
   if(activeDashboardView==='profile')loadMyProfile();
+  if(activeDashboardView==='premium'){renderPrices();const label=$('#premium-account-label');if(label)label.textContent=selectedType==='escort'?'Escort listing subscription plans':'Regular account subscription plans';}
 }
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showDashboardView(b.dataset.view)));
 $('#sign-out')?.addEventListener('click',doSignOut);$('#header-logout')?.addEventListener('click',doSignOut);
@@ -94,7 +97,19 @@ async function apiRequest(path,body=null){
   const payload=await response.json().catch(()=>({error:'Unexpected server response'}));if(!response.ok)throw new Error(payload.error||'Request failed');return payload;
 }
 async function subscriptionStatus(){return await apiRequest('/api/payments/status');}
-function showPremiumMessagingLock(message='Messaging is a Premium feature. Subscribe to unlock conversations and send messages.'){const list=$('#conversation-list');if(list)list.innerHTML='<div class="premium-chat-lock"><div class="premium-lock-icon">🔒</div><h3>Premium messaging</h3><p>Messaging is available to active Premium subscribers only.</p><button type="button" class="btn btn-blue" data-premium-plans>View Premium plans</button><button type="button" class="btn btn-outline" data-premium-retry>Retry access check</button></div>';const empty=$('#conversation-empty');const content=$('#conversation-content');if(empty){empty.hidden=false;empty.innerHTML='<div class="premium-chat-lock"><div class="premium-lock-icon">🔒</div><h3>Unlock messaging with Premium</h3><p>'+escapeHtml(message)+'</p><button type="button" class="btn btn-blue" data-premium-plans>View Premium plans</button></div>';}if(content)content.hidden=true;document.querySelectorAll('[data-premium-plans]').forEach(b=>b.onclick=()=>document.querySelector('#plans')?.scrollIntoView({behavior:'smooth',block:'start'}));document.querySelectorAll('[data-premium-retry]').forEach(b=>b.onclick=()=>loadConversations());}
+function showPremiumMessagingLock(message='Messaging is a Premium feature. Subscribe to unlock conversations and send messages.'){
+  const list=$('#conversation-list');
+  if(list)list.innerHTML='<div class="premium-chat-sidebar-lock"><div class="premium-lock-badge">🔒</div><strong>Premium messaging</strong><p>Chat is unlocked with an active subscription.</p><button type="button" class="btn btn-blue" data-premium-plans>Subscribe to Premium</button><button type="button" class="btn btn-outline" data-premium-retry>Retry access check</button></div>';
+  const empty=$('#conversation-empty');
+  const content=$('#conversation-content');
+  if(empty){
+    empty.hidden=false;
+    empty.innerHTML='<div class="premium-chat-screen"><div class="premium-chat-top"><div class="premium-chat-avatar">💬</div><div><strong>Messages</strong><small>Premium conversations</small></div><span class="premium-chat-lock-pill">LOCKED</span></div><div class="premium-chat-center"><div class="premium-chat-lock-art"><span>🔒</span></div><h3>Unlock messaging with Premium</h3><p>'+escapeHtml(message)+'</p><button type="button" class="btn btn-blue premium-subscribe-btn" data-premium-plans><span>♛</span> Subscribe to Premium</button><p class="premium-chat-footnote">Subscribe to start conversations with your matches.</p></div><div class="premium-chat-composer-preview"><button type="button" class="composer-plus" data-premium-plans aria-label="Subscribe to unlock">＋</button><button type="button" class="composer-placeholder" data-premium-plans>Message…</button><button type="button" class="composer-icon" data-premium-plans aria-label="Locked emoji">☺</button><button type="button" class="composer-send-locked" data-premium-plans aria-label="Subscribe to send"><span>🔒</span></button></div></div>';
+  }
+  if(content)content.hidden=true;
+  
+  document.querySelectorAll('[data-premium-retry]').forEach(b=>b.onclick=()=>loadConversations());
+}
 function showSubscriptionGate(){
   $('#subscription-gate').hidden=false;$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;
   document.querySelector('.site-header').hidden=false;renderAuthState();$('#subscription-gate').scrollIntoView({behavior:'smooth',block:'start'});
@@ -264,7 +279,11 @@ $('#refresh-discover')?.addEventListener('click',()=>loadProfiles('#discover-pro
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 async function likeProfile(id,button){if(!supabase||!currentUser){notice('Sign in required','Please sign in to express interest in a profile.');return;}button.disabled=true;try{const {error}=await supabase.from('likes').upsert({from_user:currentUser.id,to_user:id},{onConflict:'from_user,to_user'});if(error)throw error;button.textContent='♥ Liked';button.classList.remove('btn-blue');button.classList.add('btn-outline');const {count}=await supabase.from('likes').select('id',{count:'exact',head:true}).eq('from_user',currentUser.id);$('#stat-likes').textContent=String(count||0);notice('Interest sent','Your interest was saved. A match is created only if the other person also likes your profile.');}catch(e){notice('Could not like profile',e.message||'Please try again.');button.disabled=false;}}
-$('#subscription-choose-plan')?.addEventListener('click',()=>$('#plans')?.scrollIntoView({behavior:'smooth',block:'start'}));
+function openPremiumPlans(){if(!currentUser){notice('Sign in first','Log in before choosing a subscription.');return;}showDashboardView('premium');window.scrollTo({top:0,behavior:'smooth'});}
+function closePremiumPlans(){showDashboardView('messages');window.scrollTo({top:0,behavior:'smooth'});}
+$('#subscription-choose-plan')?.addEventListener('click',openPremiumPlans);
+$('#premium-back')?.addEventListener('click',closePremiumPlans);
+document.addEventListener('click',e=>{const cta=e.target.closest('[data-premium-plans]');if(cta){e.preventDefault();openPremiumPlans();}});
 $('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;if(!currentUser){$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#subscription-gate').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');}});refreshSession().then(()=>handlePaymentReturn());
 
 

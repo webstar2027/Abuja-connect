@@ -99,7 +99,15 @@ async function activateReference(reference, payData) {
   if (pending.status !== 'pending') return { activated: false, reason: 'This subscription payment is no longer pending.' };
   const expectedAmount = plans[pending.account_type]?.[pending.plan_code];
   if (!expectedAmount || Number(payData.amount) !== expectedAmount || payData.currency !== 'NGN' || payData.status !== 'success') return { activated: false, reason: 'Payment does not match this plan.' };
-  if (payData.reference !== reference || String(payData.metadata?.user_id || '') !== pending.user_id || payData.metadata?.account_type !== pending.account_type || payData.metadata?.plan_code !== pending.plan_code) return { activated: false, reason: 'Payment identity, plan, or reference mismatch.' };
+  // Security binding is established by the server-created pending row, its unique
+  // Paystack reference, authenticated owner during /verify, and exact amount/currency.
+  // Paystack metadata is informational and may be returned inconsistently by account
+  // settings/API versions; do not reject a genuine payment solely on metadata.
+  if (String(payData.reference || '') !== String(reference)) return { activated: false, reason: 'Verified Paystack reference does not match the pending subscription.' };
+  const metadataMismatch = String(payData.metadata?.user_id || '') !== String(pending.user_id) ||
+    String(payData.metadata?.account_type || '') !== String(pending.account_type) ||
+    String(payData.metadata?.plan_code || '') !== String(pending.plan_code);
+  if (metadataMismatch) console.warn('Paystack metadata mismatch for reference; pending row, owner, amount, currency, status, and reference remain authoritative.');
   const now = new Date();
   const currentRows = await supabaseAdmin(`subscriptions?user_id=eq.${pending.user_id}&status=eq.active&expires_at=gt.${encodeURIComponent(now.toISOString())}&select=expires_at&order=expires_at.desc&limit=1`);
   const currentExpiry = currentRows?.[0]?.expires_at ? new Date(currentRows[0].expires_at) : now;
@@ -114,6 +122,21 @@ async function activateReference(reference, payData) {
   return { activated: true, expires_at: expires.toISOString(), starts_at: starts.toISOString() };
 }
 async function handleApi(req, res, pathname) {
+  if (pathname === '/api/payments/diagnostics' && req.method === 'GET') {
+    const missing = ['SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','SUPABASE_SERVICE_ROLE_KEY','PAYSTACK_SECRET_KEY'].filter(k => !process.env[k]);
+    let subscriptionsProbe = { accessible: false, errorCode: null };
+    if (supabaseUrl && supabaseServiceKey) {
+      try {
+        await supabaseAdmin('subscriptions?select=id&limit=1');
+        subscriptionsProbe.accessible = true;
+      } catch (probeError) {
+        const match = String(probeError.message || '').match(/"code"\s*:\s*"([^"]+)"/);
+        subscriptionsProbe.errorCode = match ? match[1] : 'DATABASE_ACCESS_ERROR';
+        console.error('Payment diagnostics subscriptions probe failed:', probeError.message);
+      }
+    }
+    return json(res, 200, { configured: missing.length === 0, missing, paystackSecretPresent: Boolean(paystackSecret), subscriptionsTableAccessible: subscriptionsProbe.accessible, subscriptionsProbeError: subscriptionsProbe.errorCode });
+  }
   if (pathname === '/api/payments/config-check' && req.method === 'GET') {
     return json(res, 200, { configured: Boolean(supabaseUrl && supabasePublicKey && supabaseServiceKey && paystackSecret), missing: ['SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','SUPABASE_SERVICE_ROLE_KEY','PAYSTACK_SECRET_KEY'].filter(k => !process.env[k]) });
   }
@@ -162,6 +185,7 @@ async function handleApi(req, res, pathname) {
 
 http.createServer(async (req, res) => {
   const pathname = new URL(req.url || '/', 'http://localhost').pathname;
+  if (pathname === '/healthz' && req.method === 'GET') return json(res, 200, { ok: true, service: 'abuja-connect' });
   if (pathname.startsWith('/api/')) {
     try { return await handleApi(req, res, pathname); }
     catch (err) { console.error('API error:', err.message); return json(res, 500, { error: 'Payment service temporarily unavailable. Please try again.' }); }
