@@ -10,9 +10,7 @@ const planPrices = {
 let selectedType='regular', authMode='login', currentUser=null, supabase=null;
 const $=s=>document.querySelector(s);
 const modal=$('#notice-modal');
-function notice(title,body){$('#notice-title').textContent=title;$('#notice-body').textContent=body;if(modal?.showModal)modal.showModal();else alert(`${title}
-
-${body}`)}
+function notice(title,body){$('#notice-title').textContent=title;$('#notice-body').textContent=body;if(modal?.showModal)modal.showModal();else alert(`${title}\n\n${body}`)}
 function configured(){return window.ABUJA_CONFIG && window.ABUJA_CONFIG.supabaseUrl.startsWith('https://') && !window.ABUJA_CONFIG.supabaseUrl.includes('PASTE_') && window.ABUJA_CONFIG.supabasePublishableKey && !window.ABUJA_CONFIG.supabasePublishableKey.includes('PASTE_') && window.supabase;}
 if(configured()) supabase=window.supabase.createClient(window.ABUJA_CONFIG.supabaseUrl,window.ABUJA_CONFIG.supabasePublishableKey);
 function renderPrices(){const grid=$('#prices');if(!grid)return;grid.innerHTML=planPrices[selectedType].map((p,i)=>`<article class="price-card ${i===2?'featured':''}"><b>${p.duration}</b><div class="price">${p.price}</div><small>${i===0?'Flexible duration':'Subscription plan'}</small><button class="btn btn-blue" data-plan="${p.duration}">Choose plan</button></article>`).join('');grid.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>startCheckout(selectedType,b.dataset.plan,b));}
@@ -33,7 +31,7 @@ forgotButton?.addEventListener('click',async()=>{
   finally{forgotButton.disabled=false;}
 });
 // Google OAuth removed: Abuja Connect uses email and password authentication only.
-let activeDashboardView='discover', selectedMatch=null, memberProfile=null, conversationCache=[], conversationProfiles={};
+let activeDashboardView='discover', selectedMatch=null, memberProfile=null;
 function renderAuthState(){
   const authenticated=!!currentUser;
   document.body.classList.toggle('is-authenticated',authenticated);
@@ -50,14 +48,12 @@ function renderAuthState(){
   }
 }
 function showDashboardView(view){
-  const allowed=['dashboard','discover','encounters','matches','messages','profile','premium'];
+  const allowed=['dashboard','discover','encounters','matches','messages','profile'];
   activeDashboardView=allowed.includes(view)?view:'dashboard';
   document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==activeDashboardView);
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===activeDashboardView));
-  const titles={dashboard:'Home',discover:'Discover people',encounters:'Encounters',matches:'My matches',messages:'Messages',profile:'My profile',premium:'Premium membership'};
+  const titles={dashboard:'Dashboard',discover:'Discover people',encounters:'Encounters',matches:'My matches',messages:'Messages',profile:'My profile'};
   $('#dashboard-title').textContent=titles[activeDashboardView];
-  document.body.dataset.activePage=activeDashboardView;
-  if(activeDashboardView!=='messages')backToConversationList();
   if(!currentUser)return;
   if(activeDashboardView==='discover')loadProfiles('#discover-profiles');
   if(activeDashboardView==='encounters')loadEncounters();
@@ -65,8 +61,6 @@ function showDashboardView(view){
   if(activeDashboardView==='matches')loadMatches();
   if(activeDashboardView==='messages')loadConversations();
   if(activeDashboardView==='profile')loadMyProfile();
-  if(activeDashboardView==='premium'){renderPrices();const label=$('#premium-account-label');if(label)label.textContent=selectedType==='escort'?'Escort listing subscription plans':'Regular account subscription plans';}
-  window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showDashboardView(b.dataset.view)));
 $('#sign-out')?.addEventListener('click',doSignOut);$('#header-logout')?.addEventListener('click',doSignOut);
@@ -100,15 +94,7 @@ async function apiRequest(path,body=null){
   const payload=await response.json().catch(()=>({error:'Unexpected server response'}));if(!response.ok)throw new Error(payload.error||'Request failed');return payload;
 }
 async function subscriptionStatus(){return await apiRequest('/api/payments/status');}
-function backToConversationList(){const layout=$('#chat-layout');if(layout)layout.classList.remove('is-conversation-open');if($('#conversation-empty'))$('#conversation-empty').hidden=false;if($('#conversation-content'))$('#conversation-content').hidden=true;selectedMatch=null;}
-function showPremiumMessagingLock(message='Messaging is a Premium feature. Subscribe to unlock sending messages.'){
-  const layout=$('#chat-layout');if(layout)layout.classList.add('is-conversation-open');
-  const empty=$('#conversation-empty'),content=$('#conversation-content'),form=$('#message-form');
-  if(empty)empty.hidden=true;if(content)content.hidden=false;
-  if($('#chat-person-title'))$('#chat-person-title').textContent=selectedMatch?.name||'Conversation';
-  const box=$('#message-list');if(box)box.innerHTML=`<div class="premium-chat-lock-card"><div class="premium-lock-symbol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3"/><rect x="5" y="10" width="14" height="11" rx="2"/></svg></div><span class="premium-chat-lock-pill">PREMIUM</span><h3>Unlock messaging</h3><p>${escapeHtml(message)}</p><button class="btn btn-blue premium-subscribe-btn" data-premium-plans type="button">Subscribe to Premium</button><small>Choose a plan to start sending messages.</small></div>`;
-  if(form){form.hidden=true;$('#message-input').disabled=true;form.querySelector('button[type="submit"]').disabled=true;}
-}
+function showPremiumMessagingLock(message='Messaging is a Premium feature. Subscribe to unlock conversations and send messages.'){const list=$('#conversation-list');if(list)list.innerHTML='<div class="premium-chat-lock"><div class="premium-lock-icon">🔒</div><h3>Premium messaging</h3><p>Messaging is available to active Premium subscribers only.</p><button type="button" class="btn btn-blue" data-premium-plans>View Premium plans</button><button type="button" class="btn btn-outline" data-premium-retry>Retry access check</button></div>';const empty=$('#conversation-empty');const content=$('#conversation-content');if(empty){empty.hidden=false;empty.innerHTML='<div class="premium-chat-lock"><div class="premium-lock-icon">🔒</div><h3>Unlock messaging with Premium</h3><p>'+escapeHtml(message)+'</p><button type="button" class="btn btn-blue" data-premium-plans>View Premium plans</button></div>';}if(content)content.hidden=true;document.querySelectorAll('[data-premium-plans]').forEach(b=>b.onclick=()=>document.querySelector('#plans')?.scrollIntoView({behavior:'smooth',block:'start'}));document.querySelectorAll('[data-premium-retry]').forEach(b=>b.onclick=()=>loadConversations());}
 function showSubscriptionGate(){
   $('#subscription-gate').hidden=false;$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;
   document.querySelector('.site-header').hidden=false;renderAuthState();$('#subscription-gate').scrollIntoView({behavior:'smooth',block:'start'});
@@ -271,51 +257,14 @@ async function loadEncounters(){
 async function loadMyProfile(){if(!supabase||!currentUser)return;const {data,error}=await supabase.from('profiles').select('display_name,gender,city,bio,interests,account_type,avatar_url,additional_photo_urls').eq('id',currentUser.id).maybeSingle();if(error){$('#profile-message').textContent=error.message;return;}memberProfile=data||{};$('#profile-display-name').value=memberProfile.display_name||currentUser.user_metadata?.display_name||'';$('#profile-gender').value=memberProfile.gender||currentUser.user_metadata?.gender||'';$('#profile-city').value=memberProfile.city||'Abuja';$('#profile-bio').value=memberProfile.bio||'';$('#profile-interests').value=(memberProfile.interests||[]).join(', ');if(memberProfile.avatar_url)$('#sidebar-avatar').src=safeUrl(memberProfile.avatar_url);const preview=$('#profile-avatar-preview');if(preview&&memberProfile.avatar_url){preview.style.backgroundImage=`url("${safeUrl(memberProfile.avatar_url)}")`;preview.classList.add('has-photo');preview.textContent='';}const gallery=$('#profile-photo-gallery');if(gallery)gallery.innerHTML=(memberProfile.additional_photo_urls||[]).map(url=>`<img src="${safeUrl(url)}" alt="Additional profile photo" loading="lazy">`).join('');}
 $('#profile-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!supabase||!currentUser)return;const button=e.submitter;button.disabled=true;$('#profile-message').textContent='Saving…';const values={id:currentUser.id,display_name:$('#profile-display-name').value.trim(),gender:$('#profile-gender').value||null,city:$('#profile-city').value.trim(),bio:$('#profile-bio').value.trim(),interests:$('#profile-interests').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20),account_type:memberProfile?.account_type||currentUser.user_metadata?.account_type||'regular',age_confirmed:true,updated_at:new Date().toISOString()};const mainPhoto=$('#profile-avatar')?.files?.[0];const extraPhotos=Array.from($('#profile-extra-photos')?.files||[]);if(extraPhotos.length>3){$('#profile-message').textContent='You can add up to 3 additional photos.';button.disabled=false;return;}try{const photos=await uploadProfileImages(mainPhoto,extraPhotos,memberProfile?.avatar_url||null);Object.assign(values,photos);if(!values.avatar_url)throw new Error('Please upload your main profile photo.');const {error}=await supabase.from('profiles').upsert(values,{onConflict:'id'});if(error)throw error;memberProfile=values;$('#sidebar-avatar').src=safeUrl(values.avatar_url);$('#profile-message').textContent='Profile saved successfully.';$('#member-name').textContent=values.display_name;$('#sidebar-member-name').textContent=values.display_name;}catch(err){$('#profile-message').textContent=err.message||'Could not save profile.';}finally{button.disabled=false;}});
 async function loadMatches(){if(!supabase||!currentUser)return;const list=$('#matches-list');list.innerHTML='<p class="empty-state">Loading matches…</p>';const {data,error}=await supabase.from('matches').select('id,user_one,user_two,created_at').or(`user_one.eq.${currentUser.id},user_two.eq.${currentUser.id}`).order('created_at',{ascending:false});if(error){list.innerHTML=`<p class="empty-state">Could not load matches: ${escapeHtml(error.message)}</p>`;return;}if(!data?.length){list.innerHTML='<p class="empty-state">No matches yet. Visit Discover and like profiles to get started.</p>';$('#stat-matches').textContent='0';return;}const ids=[...new Set(data.map(m=>m.user_one===currentUser.id?m.user_two:m.user_one))];const {data:profiles}=await supabase.from('profiles').select('id,display_name,city').in('id',ids);const byId=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));list.innerHTML=data.map(m=>{const id=m.user_one===currentUser.id?m.user_two:m.user_one,p=byId[id]||{};return `<article class="match-card"><div><h3>${escapeHtml(p.display_name||'Abuja Connect member')}</h3><p>${escapeHtml(p.city||'Abuja')} · Matched ${new Date(m.created_at).toLocaleDateString()}</p></div><button class="btn btn-blue" data-chat-match="${m.id}" data-other="${id}" data-name="${escapeHtml(p.display_name||'Member')}">Message</button></article>`}).join('');list.querySelectorAll('[data-chat-match]').forEach(b=>b.onclick=()=>{selectedMatch={id:b.dataset.chatMatch,other:b.dataset.other,name:b.dataset.name};showDashboardView('messages');});$('#stat-matches').textContent=String(data.length);}
-async function renderConversationList(){
-  const list=$('#conversation-list');if(!list)return;
-  const search=($('#conversation-search')?.value||'').trim().toLowerCase();
-  const visible=conversationCache.filter(m=>{const other=m.user_one===currentUser.id?m.user_two:m.user_one;return (conversationProfiles[other]?.display_name||'Member').toLowerCase().includes(search);});
-  if(!visible.length){list.innerHTML='<div class="empty-state chat-list-empty">'+(search?'No matches for that search.':'Your matches will appear here.')+'</div>';return;}
-  list.innerHTML=visible.map(m=>{const other=m.user_one===currentUser.id?m.user_two:m.user_one,p=conversationProfiles[other]||{},name=p.display_name||'Member';return `<button class="conversation-choice ${selectedMatch?.id===m.id?'active':''}" data-open-match="${m.id}" data-other="${other}" data-name="${escapeHtml(name)}"><span class="conversation-avatar">${escapeHtml((name[0]||'M').toUpperCase())}</span><span class="conversation-choice-copy"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(p.city||'Abuja')} · Open chat</small></span></button>`;}).join('');
-  list.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>{selectedMatch={id:b.dataset.openMatch,other:b.dataset.other,name:b.dataset.name};renderConversationList();loadMessages();});
-}
-async function loadConversations(){
-  if(!supabase||!currentUser)return;
-  const list=$('#conversation-list');if(list)list.innerHTML='<p class="empty-state">Loading your matches…</p>';
-  const {data,error}=await supabase.from('matches').select('id,user_one,user_two,created_at').or(`user_one.eq.${currentUser.id},user_two.eq.${currentUser.id}`).order('created_at',{ascending:false});
-  if(error){if(list)list.innerHTML=`<p class="empty-state">Could not load matches: ${escapeHtml(error.message)}</p>`;return;}
-  conversationCache=data||[];const ids=[...new Set(conversationCache.map(m=>m.user_one===currentUser.id?m.user_two:m.user_one))];conversationProfiles={};
-  if(ids.length){const {data:profiles}=await supabase.from('profiles').select('id,display_name,city,avatar_url').in('id',ids);conversationProfiles=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));}
-  renderConversationList();
-  if(selectedMatch&&conversationCache.some(m=>m.id===selectedMatch.id))loadMessages();else backToConversationList();
-  const {count}=await supabase.from('messages').select('id',{count:'exact',head:true}).or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`);
-  $('#stat-messages').textContent=String(count||0);
-}
-async function loadMessages(){
-  if(!supabase||!currentUser||!selectedMatch)return;
-  const layout=$('#chat-layout');if(layout)layout.classList.add('is-conversation-open');
-  if($('#conversation-empty'))$('#conversation-empty').hidden=true;if($('#conversation-content'))$('#conversation-content').hidden=false;
-  if($('#chat-person-title'))$('#chat-person-title').textContent=selectedMatch.name;
-  try{const status=await subscriptionStatus();if(!status.active){showPremiumMessagingLock();return;}}
-  catch(err){showPremiumMessagingLock('We could not confirm Premium access right now. Sending is disabled until access is verified.');return;}
-  const form=$('#message-form');if(form){form.hidden=false;$('#message-input').disabled=false;form.querySelector('button[type="submit"]').disabled=false;}
-  const box=$('#message-list');box.innerHTML='<p class="empty-state">Loading messages…</p>';
-  const {data,error}=await supabase.from('messages').select('id,sender_id,recipient_id,body,created_at').eq('match_id',selectedMatch.id).order('created_at',{ascending:true}).limit(100);
-  if(error){box.innerHTML=`<p class="empty-state">Could not load messages: ${escapeHtml(error.message)}.</p>`;return;}
-  if(!data?.length){box.innerHTML='<p class="empty-state">No messages yet. Say hello!</p>';return;}
-  box.innerHTML=data.map(m=>`<div class="chat-bubble ${m.sender_id===currentUser.id?'mine':''}">${escapeHtml(m.body)}<small>${new Date(m.created_at).toLocaleString()}</small></div>`).join('');box.scrollTop=box.scrollHeight;
-}
+async function loadConversations(){if(!supabase||!currentUser)return;const list=$('#conversation-list');list.innerHTML='<p class="empty-state">Checking Premium access…</p>';try{const status=await subscriptionStatus();if(!status.active){showPremiumMessagingLock();$('#stat-messages').textContent='🔒';return;}}catch(err){showPremiumMessagingLock('We could not verify your Premium status. Please try again, or check your subscription.');notice('Premium status unavailable',err.message||'Please try again shortly.');return;}list.innerHTML='<p class="empty-state">Loading matches…</p>';const {data,error}=await supabase.from('matches').select('id,user_one,user_two,created_at').or(`user_one.eq.${currentUser.id},user_two.eq.${currentUser.id}`).order('created_at',{ascending:false});if(error){list.innerHTML=`<p class="empty-state">Could not load conversations: ${escapeHtml(error.message)}</p>`;return;}if(!data?.length){list.innerHTML='<p class="empty-state">You need a mutual match before starting a conversation.</p>';$('#conversation-empty').hidden=false;$('#conversation-content').hidden=true;return;}const ids=[...new Set(data.map(m=>m.user_one===currentUser.id?m.user_two:m.user_one))];const {data:profiles}=await supabase.from('profiles').select('id,display_name').in('id',ids);const byId=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));list.innerHTML=data.map(m=>{const other=m.user_one===currentUser.id?m.user_two:m.user_one,p=byId[other]||{};return `<button class="conversation-choice ${selectedMatch?.id===m.id?'active':''}" data-open-match="${m.id}" data-other="${other}" data-name="${escapeHtml(p.display_name||'Member')}">${escapeHtml(p.display_name||'Member')}<small>Open conversation</small></button>`}).join('');list.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>{selectedMatch={id:b.dataset.openMatch,other:b.dataset.other,name:b.dataset.name};loadMessages();});if(selectedMatch&&data.some(m=>m.id===selectedMatch.id)){loadMessages();}else{selectedMatch=null;$('#conversation-empty').hidden=false;$('#conversation-content').hidden=true;}const {count}=await supabase.from('messages').select('id',{count:'exact',head:true}).or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`);$('#stat-messages').textContent=String(count||0);}
+async function loadMessages(){if(!supabase||!currentUser||!selectedMatch)return;try{const status=await subscriptionStatus();if(!status.active){showPremiumMessagingLock();return;}}catch(err){showPremiumMessagingLock('Premium access could not be verified. Try again in a moment.');return;}$('#conversation-empty').hidden=true;$('#conversation-content').hidden=false;$('#conversation-heading').textContent=selectedMatch.name;const box=$('#message-list');box.innerHTML='<p class="empty-state">Loading messages…</p>';const {data,error}=await supabase.from('messages').select('id,sender_id,recipient_id,body,created_at').eq('match_id',selectedMatch.id).order('created_at',{ascending:true}).limit(100);if(error){box.innerHTML=`<p class="empty-state">Could not load messages: ${escapeHtml(error.message)}. Messaging may require an active subscription.</p>`;return;}if(!data?.length){box.innerHTML='<p class="empty-state">No messages yet. Say hello when your account has messaging access.</p>';return;}box.innerHTML=data.map(m=>`<div class="chat-bubble ${m.sender_id===currentUser.id?'mine':''}">${escapeHtml(m.body)}<small>${new Date(m.created_at).toLocaleString()}</small></div>`).join('');box.scrollTop=box.scrollHeight;}
 $('#message-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!supabase||!currentUser||!selectedMatch)return;const input=$('#message-input'),body=input.value.trim();if(!body)return;const button=e.submitter;button.disabled=true;try{const status=await subscriptionStatus();if(!status.active){showPremiumMessagingLock();throw new Error('Sending messages requires an active Premium subscription.');}const {error}=await supabase.from('messages').insert({match_id:selectedMatch.id,sender_id:currentUser.id,recipient_id:selectedMatch.other,body});if(error)throw error;input.value='';await loadMessages();}catch(err){notice('Message not sent',(err.message||'').toLowerCase().includes('active subscriber')?'Sending messages requires an active Premium subscription.':err.message||'Please try again.');}finally{button.disabled=false;}});
 $('#refresh-discover')?.addEventListener('click',()=>loadProfiles('#discover-profiles'));$('#refresh-matches')?.addEventListener('click',loadMatches);
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 async function likeProfile(id,button){if(!supabase||!currentUser){notice('Sign in required','Please sign in to express interest in a profile.');return;}button.disabled=true;try{const {error}=await supabase.from('likes').upsert({from_user:currentUser.id,to_user:id},{onConflict:'from_user,to_user'});if(error)throw error;button.textContent='♥ Liked';button.classList.remove('btn-blue');button.classList.add('btn-outline');const {count}=await supabase.from('likes').select('id',{count:'exact',head:true}).eq('from_user',currentUser.id);$('#stat-likes').textContent=String(count||0);notice('Interest sent','Your interest was saved. A match is created only if the other person also likes your profile.');}catch(e){notice('Could not like profile',e.message||'Please try again.');button.disabled=false;}}
-function openPremiumPlans(){if(!currentUser){notice('Sign in first','Log in before choosing a subscription.');return;}showDashboardView('premium');window.scrollTo({top:0,behavior:'smooth'});}
-function closePremiumPlans(){showDashboardView('messages');backToConversationList();}
-$('#subscription-choose-plan')?.addEventListener('click',openPremiumPlans);
-$('#premium-back')?.addEventListener('click',closePremiumPlans);$('#chat-back')?.addEventListener('click',backToConversationList);$('#conversation-search')?.addEventListener('input',renderConversationList);
-$('#sidebar-collapse')?.addEventListener('click',()=>{const sidebar=$('#dashboard-sidebar'),collapsed=sidebar.classList.toggle('is-collapsed');$('#sidebar-collapse').setAttribute('aria-expanded',String(!collapsed));$('#sidebar-collapse').setAttribute('aria-label',collapsed?'Expand sidebar':'Collapse sidebar');});
-document.addEventListener('click',e=>{const cta=e.target.closest('[data-premium-plans]');if(cta){e.preventDefault();openPremiumPlans();}});
+$('#subscription-choose-plan')?.addEventListener('click',()=>$('#plans')?.scrollIntoView({behavior:'smooth',block:'start'}));
 $('#menu')?.addEventListener('click',()=>{const n=$('#nav'),open=n.classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open));});document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>{$('#nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');}));$('#close-modal')?.addEventListener('click',()=>modal.close());$('#notice-ok')?.addEventListener('click',()=>modal.close());$('#year').textContent=new Date().getFullYear();renderPrices();setAuthMode('login');if(supabase)supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;if(!currentUser){$('#member-dashboard').hidden=true;$('#profile-onboarding').hidden=true;$('#subscription-gate').hidden=true;$('#auth-card').closest('.hero').hidden=false;document.querySelector('.site-header').hidden=true;document.body.classList.remove('is-authenticated');}});refreshSession().then(()=>handlePaymentReturn());
 
 
