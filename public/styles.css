@@ -393,33 +393,55 @@ body{background:#08080c;font-family:Inter,system-ui,-apple-system,BlinkMacSystem
 }
 @media(max-width:420px){.dashboard-main{padding-left:10px!important;padding-right:10px!important}.profile-grid{gap:8px!important}.profile-card{min-height:260px!important}.profile-photo{height:245px!important}}
 
-   on iOS, so the normal desktop two-column hero must not be used on login. */
-  display:flex!important;
-  flex-direction:column!important;
-  grid-template-columns:1fr!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:0!important;
-  width:100%!important;
-  min-width:0!important;
-  max-width:100vw!important;
-  min-height:var(--tg-viewport-height,100svh)!important;
-  height:auto!important;
-  margin:0!important;
-  padding:calc(16px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom))!important;
-  overflow-x:hidden!important;
-}
-  display:block!important;
-  width:100%!important;
-  max-width:480px!important;
-  min-width:0!important;
-  margin:0 auto!important;
-  padding:clamp(18px,5vw,28px)!important;
-  border-radius:22px!important;
-  overflow:visible!important;
-}
 
-   even when Telegram reports a tablet/desktop WebView viewport. */
 
-/* Abuja Connect Explore screen — Proxima-inspired dark mobile discovery layout */
-:root{--proxima-violet:#a58aff;--proxima-dark:#0b0b10}
+/* Abuja Connect: separate mobile-app and desktop-web layouts */
+@media (min-width:761px){
+ .member-dashboard{display:grid!important;grid-template-columns:250px minmax(0,1fr)!important;align-items:start!important;padding:0!important;min-height:100vh!important}
+ .dashboard-sidebar{position:sticky!important;top:0!important;left:auto!important;transform:none!important;bottom:auto!important;width:250px!important;height:100vh!important;max-height:100vh!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:7px!important;padding:30px 18px!important;border:0!important;border-right:1px solid #292932!important;border-radius:0!important;box-shadow:none!important;overflow-y:auto!important;background:#111117!important}
+ .dashboard-sidebar>.eyebrow,.dashboard-sidebar>h2,.sidebar-user{display:block!important}
+ .dashboard-sidebar>h2{margin:0 0 12px!important;font-size:23px!important}
+ .sidebar-user{display:flex!important;align-items:center!important;gap:10px!important;padding:12px!important;border-radius:14px!important;margin:0 0 14px!important}
+ .dashboard-tab{display:flex!important;flex-direction:row!important;justify-content:flex-start!important;gap:12px!important;max-width:none!important;min-width:0!important;width:100%!important;min-height:46px!important;padding:11px 14px!important;border-radius:13px!important;font-size:14px!important}
+ .dashboard-tab .nav-icon{width:21px!important;height:21px!important}
+ .dashboard-tab.active{background:#292432!important;color:#c3a2ff!important}
+ .dashboard-logout{display:flex!important;margin-top:auto!important}
+ .dashboard-main{padding:32px 38px 48px!important;max-width:none!important;margin:0!important;width:100%!important}
+ .dashboard-topline h1{font-size:30px!important}
+ .profile-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:20px!important}
+ .profile-photo{height:360px!important}
+ .dashboard-sidebar .dashboard-tab[data-view=profile]{display:flex!important}
+}
+@media (max-width:760px){
+ .member-dashboard{display:block!important;padding-bottom:calc(86px + env(safe-area-inset-bottom))!important;min-height:100svh!important}
+ .dashboard-main{padding:18px 14px 28px!important;max-width:none!important;margin:0!important}
+ .dashboard-sidebar{bottom:calc(10px + env(safe-area-inset-bottom))!important;top:auto!important;left:50%!important;transform:translateX(-50%)!important;width:min(430px,calc(100vw - 18px))!important;height:72px!important;max-height:72px!important;flex-direction:row!important;align-items:center!important;justify-content:space-around!important;gap:2px!important;padding:7px 6px!important;border:1px solid #34343e!important;border-radius:24px!important;background:rgba(16,16,23,.95)!important;box-shadow:0 14px 42px #0009!important;backdrop-filter:blur(24px)!important}
+ .dashboard-sidebar>.eyebrow,.dashboard-sidebar>h2,.sidebar-user{display:none!important}
+ .dashboard-tab{display:flex!important;flex:1!important;min-width:0!important;max-width:82px!important;min-height:54px!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;padding:5px 3px!important;border-radius:17px!important;font-size:10px!important;background:transparent!important;color:#aaaab7!important}
+ .dashboard-tab .nav-icon{width:22px!important;height:22px!important}
+ .dashboard-tab.active{background:#fff!important;color:#111!important}
+ .dashboard-tab[data-view=dashboard],.dashboard-tab[data-view=premium],.dashboard-logout{display:none!important}
+ .dashboard-tab[data-view=profile]{display:flex!important}
+ .dashboard-topline{margin:4px 0 18px!important;border:0!important;padding:0!important}
+ .dashboard-topline .eyebrow,.signed-in-pill{display:none!important}
+ .dashboard-topline h1{font-size:24px!important;text-transform:none!important;letter-spacing:-.5px!important}
+ .dashboard-view[data-panel=discover] .dashboard-section-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;margin:0 0 14px!important}
+ .dashboard-view[data-panel=discover] .dashboard-section-heading h2{display:block!important;font-size:22px!important}
+ .dashboard-view[data-panel=discover] .dashboard-section-heading p{display:block!important;color:#9999a8!important;font-size:12px!important}
+ .dashboard-view[data-panel=discover] .dashboard-section-heading:before{content:none!important}
+ .profile-grid{grid-template-columns:1fr!important;gap:14px!important}
+ .profile-card{min-height:0!important;border-radius:24px!important;overflow:hidden!important}
+ .profile-photo{height:min(67svh,620px)!important;min-height:400px!important;border-radius:24px!important;background-position:center 24%!important}
+ .profile-info{margin-top:-110px!important;padding:65px 17px 16px!important;min-height:110px!important;background:linear-gradient(180deg,transparent,rgba(0,0,0,.1) 15%,rgba(0,0,0,.82) 62%,#08080c)!important}
+ .profile-name,.profile-info h2{font-size:23px!important}
+ .profile-info p{font-size:13px!important}
+ .profile-info .bio{display:block!important;font-size:12px!important;max-height:48px!important;overflow:hidden!important}
+ .interest-tags{display:flex!important;flex-wrap:wrap!important}
+ .profile-actions{display:flex!important;gap:10px!important;margin-top:12px!important}
+ .profile-actions .btn{min-height:44px!important;flex:1!important;border-radius:25px!important;font-size:14px!important}
+ .dashboard-view[data-panel=messages] .dashboard-section-heading h2{font-size:24px!important}
+ .encounter-card{min-height:70svh!important}
+ .encounter-card .encounter-photo{height:70svh!important;min-height:480px!important}
+ .dashboard-stats,.welcome-panel{display:none!important}
+}
+@media(min-width:1100px){.profile-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}.profile-photo{height:390px!important}}
