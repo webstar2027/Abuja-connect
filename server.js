@@ -98,7 +98,13 @@ async function activateReference(reference, payData) {
   if (pending.status === 'active') return { activated: true, already_active: true, expires_at: pending.expires_at };
   if (pending.status !== 'pending') return { activated: false, reason: 'This subscription payment is no longer pending.' };
   const expectedAmount = plans[pending.account_type]?.[pending.plan_code];
-  if (!expectedAmount || Number(payData.amount) !== expectedAmount || payData.currency !== 'NGN' || payData.status !== 'success') return { activated: false, reason: 'Payment does not match this plan.' };
+  // Keep verification strict, but report the exact reason instead of the vague
+  // "payment does not match this plan" message so a paid transaction can be
+  // diagnosed without repeating a charge.
+  if (!expectedAmount) return { activated: false, reason: 'The saved subscription plan is invalid. Please contact support; do not pay again.' };
+  if (Number(payData.amount) !== expectedAmount) return { activated: false, reason: `Amount mismatch: expected ₦${(expectedAmount / 100).toLocaleString('en-NG')} but Paystack verified ₦${(Number(payData.amount || 0) / 100).toLocaleString('en-NG')}. Please contact support; do not pay again.` };
+  if (payData.currency !== 'NGN') return { activated: false, reason: `Currency mismatch: Paystack returned ${String(payData.currency || 'unknown')}, expected NGN. Please contact support; do not pay again.` };
+  if (payData.status !== 'success') return { activated: false, reason: `Paystack transaction status is ${String(payData.status || 'unknown')}, not success. If your bank was debited, do not pay again.` };
   // Security binding is established by the server-created pending row, its unique
   // Paystack reference, authenticated owner during /verify, and exact amount/currency.
   // Paystack metadata is informational and may be returned inconsistently by account
