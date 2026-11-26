@@ -1,0 +1,1 @@
+Telegram Mini App interface, SDK initialization, Telegram-specific styles, and Telegram setup instructions have been removed. Abuja Connect remains a regular website.

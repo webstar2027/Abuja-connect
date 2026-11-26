@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#09090e">
-  <meta name="telegram-web-app-capable" content="yes">
   <meta name="description" content="Abuja Connect — discover people, build meaningful connections and meet thoughtfully. Adults 18+ only.">
   <title>Abuja Connect — Real People. Real Connections.</title>
   <link rel="stylesheet" href="/styles.css">
@@ -137,8 +136,6 @@
   <footer><img src="/assets/abuja-connect-logo.png" alt="" class="footer-logo"><span>Abuja Connect · Adults 18+ only · © <span id="year"></span></span><a href="#safety">Safety first</a></footer>
 
   <dialog id="notice-modal" class="notice-modal"><button id="close-modal" class="close" aria-label="Close">×</button><p class="eyebrow">ABUJA CONNECT</p><h2 id="notice-title">Preview interaction</h2><p id="notice-body">This interface is a design preview.</p><button class="btn btn-blue" id="notice-ok">Got it</button></dialog>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>try{const tg=window.Telegram&&window.Telegram.WebApp;if(tg){tg.ready();tg.expand();document.body.classList.add("telegram-mini-app");document.documentElement.style.setProperty("--tg-viewport-height",(tg.viewportHeight||window.innerHeight)+"px");tg.onEvent("viewportChanged",()=>document.documentElement.style.setProperty("--tg-viewport-height",(tg.viewportHeight||window.innerHeight)+"px"));}}catch(e){console.warn("Telegram WebApp initialization skipped",e);}</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/config.js"></script>
   <script src="/app.js"></script>
